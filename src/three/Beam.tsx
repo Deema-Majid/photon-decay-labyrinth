@@ -4,6 +4,7 @@ import * as THREE from 'three'
 import { WAVELENGTHS } from '../levels/types'
 import { LAB_Y, useGame } from '../store/useGame'
 import { createBeamAuraMaterial } from './materials'
+import { flareTexture } from './textures'
 
 const UP = new THREE.Vector3(0, 1, 0)
 const BEAM_Y = LAB_Y + 1
@@ -53,6 +54,8 @@ export function Beam() {
 
   const packets = useRef<THREE.Group[]>([])
   const hitLight = useRef<THREE.PointLight>(null)
+  const flare = useRef<THREE.Sprite>(null)
+  const flareMap = useMemo(() => flareTexture(), [])
   const tmp = useMemo(() => new THREE.Vector3(), [])
 
   useFrame(({ clock }) => {
@@ -95,6 +98,16 @@ export function Beam() {
       hitLight.current.color.set(WAVELENGTHS[h.wl].color)
       const base = h.action === 'burn' || h.action === 'shatter' ? 18 : h.action === 'receive' ? 14 : 6
       hitLight.current.intensity = base + Math.sin(t * 31) * base * 0.25
+      if (flare.current) {
+        flare.current.position.set(h.at[0], BEAM_Y, h.at[1])
+        const big = h.action === 'burn' || h.action === 'shatter' || h.action === 'receive'
+        const sc = (big ? 1.7 : 1.0) + Math.sin(t * 17) * 0.15
+        flare.current.scale.set(sc, sc, 1)
+        const fm = flare.current.material as THREE.SpriteMaterial
+        fm.color.set(WAVELENGTHS[h.wl].color)
+        fm.rotation = t * 0.6
+        flare.current.visible = h.action !== 'none'
+      }
     }
   })
 
@@ -124,6 +137,9 @@ export function Beam() {
         </group>
       ))}
       <pointLight ref={hitLight} intensity={6} distance={7} decay={2} />
+      <sprite ref={flare} scale={[1.4, 1.4, 1]}>
+        <spriteMaterial map={flareMap} color="#00f0ff" transparent blending={THREE.AdditiveBlending} depthWrite={false} toneMapped={false} />
+      </sprite>
     </group>
   )
 }

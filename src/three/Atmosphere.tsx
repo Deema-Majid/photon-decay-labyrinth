@@ -1,9 +1,9 @@
-import { Sparkles } from '@react-three/drei'
+import { Sparkles, SpotLight } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
-import { LAB_Y, useGame, volatile } from '../store/useGame'
-import { createShaftMaterial, dampColor } from './materials'
+import { LAB_Y, useGame } from '../store/useGame'
+import { dampColor } from './materials'
 
 /** Animated exponential fog + ambient/key lights that drift between the dirty and the clean palette. */
 export function Fog() {
@@ -13,11 +13,13 @@ export function Fog() {
   const restoration = useGame((s) => s.restoration)
   const ambient = useRef<THREE.AmbientLight>(null)
   const key = useRef<THREE.DirectionalLight>(null)
+  const rim = useRef<THREE.DirectionalLight>(null)
   const fog = useMemo(() => new THREE.FogExp2('#3a2410', 0.03), [])
   const smooth = useRef(0)
 
   useEffect(() => {
     scene.fog = fog
+    scene.background = fog.color
     return () => {
       scene.fog = null
     }
@@ -29,7 +31,7 @@ export function Fog() {
   const amb1 = useMemo(() => new THREE.Color(level.cleanPalette.ambient), [level])
   const key0 = useMemo(() => new THREE.Color(level.palette.key), [level])
   const key1 = useMemo(() => new THREE.Color(level.cleanPalette.key), [level])
-  const introFog = useMemo(() => new THREE.Color('#5c3d1c'), [])
+  const introFog = useMemo(() => new THREE.Color('#6a4522'), [])
   const tmp = useMemo(() => new THREE.Color(), [])
 
   useFrame((_, dt) => {
@@ -39,32 +41,41 @@ export function Fog() {
     const k = smooth.current
     if (phase === 'intro' || phase === 'diving') {
       dampColor(fog.color, introFog, 2, d)
-      fog.density += (0.028 - fog.density) * Math.min(1, d * 2)
+      fog.density += (0.016 - fog.density) * Math.min(1, d * 2)
       if (ambient.current) dampColor(ambient.current.color, amb0, 2, d)
       if (key.current) dampColor(key.current.color, key0, 2, d)
     } else {
       tmp.copy(dirty).lerp(clean, k)
       dampColor(fog.color, tmp, 2, d)
-      const dens = THREE.MathUtils.lerp(level.palette.fogDensity, level.cleanPalette.fogDensity, k)
+      const dens = THREE.MathUtils.lerp(level.palette.fogDensity, level.cleanPalette.fogDensity, k) * 0.75
       fog.density += (dens * (phase === 'finale' ? 0.5 : 1) - fog.density) * Math.min(1, d * 2)
       if (ambient.current) dampColor(ambient.current.color, tmp.copy(amb0).lerp(amb1, k), 2, d)
       if (key.current) dampColor(key.current.color, tmp.copy(key0).lerp(key1, k), 2, d)
+      if (rim.current) rim.current.intensity += ((0.8 + k * 1.6) - rim.current.intensity) * Math.min(1, d * 2)
     }
   })
 
   return (
     <>
-      <ambientLight ref={ambient} intensity={0.9} color={level.palette.ambient} />
-      <hemisphereLight args={['#5b6f8a', '#2a1a0a', 0.5]} />
+      <ambientLight ref={ambient} intensity={1.1} color={level.palette.ambient} />
+      <hemisphereLight args={['#5b6f8a', '#2a1a0a', 0.45]} />
       <directionalLight
         ref={key}
         position={[12, 30, 8]}
-        intensity={2.6}
+        intensity={3.4}
         color={level.palette.key}
         castShadow
         shadow-mapSize={[1024, 1024]}
+        shadow-bias={-0.0004}
+        shadow-camera-left={-40}
+        shadow-camera-right={40}
+        shadow-camera-top={40}
+        shadow-camera-bottom={-40}
+        shadow-camera-far={120}
       />
-      <directionalLight position={[-20, LAB_Y + 20, -10]} intensity={1.2} color="#7ad7ff" />
+      {/* cool rim / back light separates prisms and crystals from the floor */}
+      <directionalLight ref={rim} position={[-18, LAB_Y + 14, -16]} intensity={0.9} color="#7ad7ff" />
+      <directionalLight position={[20, 40, -30]} intensity={0.5} color="#ffd9b0" />
     </>
   )
 }
@@ -80,49 +91,69 @@ export function LabDust() {
       <Sparkles
         count={quality === 'high' ? 2600 : 900}
         scale={[w, 8, d]}
-        size={quality === 'high' ? 2.6 : 3.4}
+        size={quality === 'high' ? 2.4 : 3.2}
         speed={0.22}
-        opacity={0.6}
+        opacity={0.55}
         color={level.palette.accent}
         noise={1.4}
       />
-      <Sparkles count={quality === 'high' ? 500 : 150} scale={[w * 0.7, 5, d * 0.7]} size={5} speed={0.1} opacity={0.35} color="#ffffff" />
+      <Sparkles count={quality === 'high' ? 400 : 120} scale={[w * 0.7, 5, d * 0.7]} size={4.5} speed={0.1} opacity={0.3} color="#ffffff" />
     </group>
   )
 }
 
-/** Volumetric light shafts falling into the cavern. */
+/** Volumetric spotlights falling into the cavern. */
 export function LightShafts() {
   const level = useGame((s) => s.level)
-  const mats = useMemo(() => [0, 1, 2, 3].map(() => createShaftMaterial(level.palette.key)), [level])
-  const target = useMemo(() => new THREE.Color(), [])
+  const quality = useGame((s) => s.quality)
   const restoration = useGame((s) => s.restoration)
-
-  useEffect(() => () => mats.forEach((m) => m.dispose()), [mats])
+  const targets = useMemo(() => [0, 1, 2].map(() => new THREE.Object3D()), [])
+  const lights = useRef<THREE.SpotLight[]>([])
+  const color = useMemo(() => new THREE.Color(), [])
 
   useFrame(({ clock }, dt) => {
     const t = clock.getElapsedTime()
-    target.set(level.palette.key).lerp(new THREE.Color(level.cleanPalette.key), restoration)
-    mats.forEach((m, i) => {
-      m.uniforms.uTime.value = t + i * 3
-      dampColor(m.uniforms.uColor.value as THREE.Color, target, 1.5, dt)
-      m.uniforms.uStrength.value = 0.22 + Math.sin(t * 0.4 + i) * 0.06 + volatile.worldClean * 0.12
+    color.set(level.palette.key).lerp(new THREE.Color(level.cleanPalette.key), restoration)
+    lights.current.forEach((l, i) => {
+      if (!l) return
+      dampColor(l.color, color, 1.5, dt)
+      l.intensity = 60 + Math.sin(t * 0.5 + i * 2) * 14
     })
   })
 
-  const positions: [number, number, number][] = [
-    [-level.cols * 0.6, 0, -level.rows * 0.4],
-    [level.cols * 0.7, 0, level.rows * 0.3],
-    [-level.cols * 0.2, 0, level.rows * 0.8],
-    [level.cols * 0.3, 0, -level.rows * 0.9],
+  const w = level.cols
+  const d = level.rows
+  const spots: { p: [number, number, number]; t: [number, number, number] }[] = [
+    { p: [-w * 0.8, 15, -d * 0.6], t: [-w * 0.4, 0, -d * 0.2] },
+    { p: [w * 0.9, 16, d * 0.5], t: [w * 0.4, 0, d * 0.1] },
+    { p: [0, 17, -d * 1.3], t: [0, 0, -d * 0.6] },
   ]
+  const count = quality === 'high' ? 3 : 1
 
   return (
     <group position={[0, LAB_Y, 0]}>
-      {positions.map((p, i) => (
-        <mesh key={i} position={[p[0], 9, p[2]]} rotation={[0, 0, 0.08 * (i % 2 ? 1 : -1)]} material={mats[i]}>
-          <coneGeometry args={[4.5 + i, 18, 24, 1, true]} />
-        </mesh>
+      {spots.slice(0, count).map((s, i) => (
+        <group key={i}>
+          <primitive object={targets[i]} position={s.t} />
+          <SpotLight
+            ref={(l: THREE.SpotLight | null) => {
+              if (l) lights.current[i] = l
+            }}
+            position={s.p}
+            target={targets[i]}
+            color={level.palette.key}
+            intensity={60}
+            distance={30}
+            angle={0.42}
+            penumbra={0.6}
+            attenuation={18}
+            anglePower={5}
+            radiusTop={0.4}
+            radiusBottom={9}
+            opacity={0.35}
+            volumetric
+          />
+        </group>
       ))}
     </group>
   )

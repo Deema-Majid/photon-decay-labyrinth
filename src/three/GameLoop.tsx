@@ -1,11 +1,32 @@
 import { useFrame } from '@react-three/fiber'
+import { useRef } from 'react'
 import { BURN_TIME, CHARGE_TIME, SHATTER_TIME, SPHERE_PERIOD, useGame, volatile } from '../store/useGame'
 
 /** Drives burn / shatter / charge timers and moving obstacles. Runs every frame, renders nothing. */
 export function GameLoop() {
+  const fpsAcc = useRef({ t: 0, n: 0, slow: 0 })
+
   useFrame((_, dt) => {
     const d = Math.min(dt, 0.05)
     const s = useGame.getState()
+
+    // auto quality: drop to the light preset after sustained low frame rate while playing
+    const acc = fpsAcc.current
+    acc.t += dt
+    acc.n += 1
+    if (acc.t >= 1) {
+      const fps = acc.n / acc.t
+      acc.t = 0
+      acc.n = 0
+      if (s.phase === 'playing' && s.quality === 'high' && !volatile.autoQualityDone && document.visibilityState === 'visible') {
+        acc.slow = fps < 27 ? acc.slow + 1 : 0
+        if (acc.slow >= 3) {
+          volatile.autoQualityDone = true
+          s.setQuality('low')
+          s.say('لاحظت انخفاض الإطارات، فخففت الجودة تلقائيًا. تقدر ترجعها «سينمائية» من الزر أسفل اليسار.')
+        }
+      }
+    }
 
     volatile.trauma = Math.max(0, volatile.trauma - d * 1.6)
 

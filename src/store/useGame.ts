@@ -30,6 +30,7 @@ export const volatile = {
   diveStart: 0,
   sphereClock: 0,
   worldClean: 0,
+  autoQualityDone: false,
 }
 
 export const LAB_Y = -60

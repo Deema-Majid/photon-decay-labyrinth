@@ -94,6 +94,12 @@ export function CameraRig() {
       camera.position.z += Math.cos(t * 53 + n * 3) * s * 0.5
     }
     camera.lookAt(lookCurrent)
+    const cam = camera as THREE.PerspectiveCamera
+    const fovTarget = phase === 'intro' ? 50 : phase === 'finale' ? 46 : 42
+    if (Math.abs(cam.fov - fovTarget) > 0.01) {
+      cam.fov += (fovTarget - cam.fov) * Math.min(1, d * 1.5)
+      cam.updateProjectionMatrix()
+    }
   })
 
   return null

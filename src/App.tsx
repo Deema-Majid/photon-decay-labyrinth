@@ -4,6 +4,7 @@ import { Scene } from './three/Scene'
 import { DiveFlash } from './ui/DiveFlash'
 import { Finale } from './ui/Finale'
 import { IntroOverlay } from './ui/IntroOverlay'
+import { Letterbox } from './ui/Letterbox'
 import { LevelClear } from './ui/LevelClear'
 import { LumenPanel } from './ui/LumenPanel'
 import { StatusBar } from './ui/StatusBar'
@@ -37,6 +38,7 @@ export default function App() {
     <div className="fixed inset-0 overflow-hidden bg-[#06080c]">
       <Scene />
       <div className="pointer-events-none absolute inset-0">
+        <Letterbox />
         {phase === 'intro' ? <IntroOverlay /> : null}
         {phase === 'diving' ? <DiveFlash /> : null}
         {inGame ? <TopHUD /> : null}
