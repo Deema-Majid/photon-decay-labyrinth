@@ -18,13 +18,19 @@ export interface Profile {
   unlocked: number
   best: Record<number, BestRecord>
   clears: number
+  /** achievement id -> unlock time */
+  achievements?: Record<string, number>
 }
+
+export const ACHIEVEMENTS = ['first_light', 'perfect', 'all_perfect', 'speedrun', 'spectrum', 'restorer', 'photographer'] as const
+export type AchievementId = (typeof ACHIEVEMENTS)[number]
 
 export interface Settings {
   quality: 'high' | 'low'
   volume: number
   muted: boolean
   reducedMotion: boolean
+  music: boolean
 }
 
 export const LEVEL_COUNT = 3
@@ -100,6 +106,8 @@ interface ProfileState {
   deleteProfile: (id: string) => void
   recordClear: (levelId: number, rec: Omit<BestRecord, 'at'>) => { newRecord: boolean }
   setSettings: (patch: Partial<Settings>) => void
+  /** returns true when the achievement is new for the active profile */
+  unlock: (id: AchievementId) => boolean
 }
 
 export const useProfile = create<ProfileState>()(
@@ -113,6 +121,7 @@ export const useProfile = create<ProfileState>()(
         volume: 0.8,
         muted: false,
         reducedMotion: prefersReducedMotion(),
+        music: true,
       },
 
       setLang(lang) {
@@ -184,12 +193,25 @@ export const useProfile = create<ProfileState>()(
       setSettings(patch) {
         set((s) => ({ settings: { ...s.settings, ...patch } }))
       },
+
+      unlock(id) {
+        const s = get()
+        const profile = s.profiles.find((p) => p.id === s.activeId)
+        if (!profile || profile.achievements?.[id]) return false
+        const updated = { ...profile, achievements: { ...(profile.achievements ?? {}), [id]: Date.now() } }
+        set({ profiles: s.profiles.map((p) => (p.id === profile.id ? updated : p)) })
+        return true
+      },
     }),
     {
       name: 'photon-labyrinth/v1',
       version: 1,
       storage: safeStorage,
       partialize: (s) => ({ lang: s.lang, profiles: s.profiles, activeId: s.activeId, settings: s.settings }),
+      merge: (persisted, current) => {
+        const p = (persisted ?? {}) as Partial<ProfileState>
+        return { ...current, ...p, settings: { ...current.settings, ...(p.settings ?? {}) } }
+      },
     },
   ),
 )

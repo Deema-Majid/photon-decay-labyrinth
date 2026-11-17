@@ -66,7 +66,7 @@ export function Modal({
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        e.stopPropagation()
+        e.stopImmediatePropagation()
         onClose()
       }
     }

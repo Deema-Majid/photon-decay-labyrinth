@@ -73,6 +73,9 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
           </span>
         </div>
       </Row>
+      <Row label={t('settings.music')} hint={t('settings.musicHint')}>
+        <Toggle checked={settings.music} onChange={(v) => setSettings({ music: v })} label={t('settings.music')} />
+      </Row>
       <Row label={t('settings.motion')} hint={t('settings.motionHint')}>
         <Toggle
           checked={settings.reducedMotion}

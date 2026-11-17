@@ -1,6 +1,8 @@
 @import 'tailwindcss';
 
 :root {
+  color-scheme: dark;
+  scrollbar-color: rgba(0, 240, 255, 0.35) transparent;
   --cyan: #00f0ff;
   --ir: #ff3b30;
   --uv: #a855f7;
@@ -93,6 +95,29 @@ canvas {
   border: 1px solid var(--c);
   opacity: 0;
   pointer-events: none;
+}
+.wl-btn[data-tip='true'] {
+  animation: tipPulse 1.1s ease-in-out infinite;
+}
+@keyframes tipPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--c) 0%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 0 0 3px color-mix(in srgb, var(--c) 55%, transparent),
+      0 0 22px color-mix(in srgb, var(--c) 60%, transparent);
+  }
+}
+.hud-num[data-state='waiting'] {
+  color: rgba(207, 250, 254, 0.4);
+}
+.hud-num[data-state='ok'] {
+  color: rgba(255, 255, 255, 0.85);
+}
+.hud-num[data-state='over'] {
+  color: #fcd34d;
 }
 .wl-btn[data-just='true'] .ripple {
   animation: ripple 600ms ease-out forwards;

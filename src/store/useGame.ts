@@ -5,7 +5,9 @@ import { computeTrace, cellToWorld, type CellRuntime, type Trace } from '../engi
 import { emit } from '../engine/events'
 import { sfx } from '../audio/sfx'
 import type { Params, StringKey } from '../i18n/strings'
-import { useProfile } from './useProfile'
+import { nextHint, type HintAction } from '../engine/solver'
+import { useToasts } from '../ui/toastStore'
+import { totalStars, useProfile, type AchievementId } from './useProfile'
 
 export type Phase = 'intro' | 'diving' | 'playing' | 'clear' | 'finale'
 export type Quality = 'high' | 'low'
@@ -26,7 +28,10 @@ export interface Stats {
   burned: number
   shattered: number
   switches: number
+  /** 0 until the first move: the clock starts then, not during the title card */
   startedAt: number
+  hintsUsed: number
+  used: Wavelength[]
 }
 
 export interface ClearResult {
@@ -34,6 +39,7 @@ export interface ClearResult {
   rotations: number
   stars: number
   newRecord: boolean
+  hintsUsed: number
 }
 
 /** Per-frame mutable values that never trigger React renders. */
@@ -60,6 +66,14 @@ export const volatile = {
   /** frames rendered since load, used by the loading screen */
   frames: 0,
   pauseStart: 0,
+  /** contextual Lumen tips already shown in this run */
+  tipsShown: new Set<string>(),
+  /** seconds the beam has been stuck on the same obstacle, and since the last move */
+  stuckFor: 0,
+  stuckKey: '',
+  idleFor: 0,
+  /** set by the photo bar, consumed by the capture frame hook */
+  captureRequested: false,
 }
 
 export const LAB_Y = -60
@@ -82,6 +96,11 @@ interface GameState {
   /** bumps on every (re)start of a cell, keys the title card */
   runId: number
   lastResult: ClearResult | null
+  /** wavelength button Lumen is pointing at */
+  tipWl: Wavelength | null
+  /** current hint from the solver, highlighted in the scene or the HUD */
+  hint: (HintAction & { t: number }) | null
+  photo: boolean
   startRun: (levelIndex: number) => void
   beginPlay: () => void
   setWavelength: (wl: Wavelength) => void
@@ -96,6 +115,10 @@ interface GameState {
   setHovered: (id: string | null) => void
   setQuality: (q: Quality) => void
   say: (key: StringKey, extra?: Omit<LumenMsg, 'id' | 'key'>) => void
+  tip: (key: StringKey, extra?: Omit<LumenMsg, 'id' | 'key'>, wl?: Wavelength) => void
+  takeHint: () => void
+  setPhoto: (on: boolean) => void
+  achieve: (id: AchievementId) => void
 }
 
 let lumenId = 0
@@ -124,7 +147,12 @@ function restorationOf(level: LevelDef, runtime: Record<string, CellRuntime>) {
 }
 
 function freshStats(): Stats {
-  return { rotations: 0, burned: 0, shattered: 0, switches: 0, startedAt: performance.now() }
+  return { rotations: 0, burned: 0, shattered: 0, switches: 0, startedAt: 0, hintsUsed: 0, used: ['vis'] }
+}
+
+/** The clock starts on the first rotation, wavelength switch or hint. */
+function started(stats: Stats): Stats {
+  return stats.startedAt ? stats : { ...stats, startedAt: performance.now() }
 }
 
 function resetVolatile() {
@@ -133,6 +161,10 @@ function resetVolatile() {
   volatile.focusEvent = null
   volatile.sphereClock = 0
   volatile.levelStart = performance.now()
+  volatile.tipsShown = new Set()
+  volatile.stuckFor = 0
+  volatile.stuckKey = ''
+  volatile.idleFor = 0
 }
 
 export const useGame = create<GameState>((set, get) => {
@@ -153,6 +185,13 @@ export const useGame = create<GameState>((set, get) => {
 
   const sayLevel = (level: LevelDef) => say('lumen.levelIntro', { levelId: level.id })
 
+  const achieve = (id: AchievementId) => {
+    if (useProfile.getState().unlock(id)) {
+      useToasts.getState().push({ kind: 'ach', ach: id })
+      sfx.achievement()
+    }
+  }
+
   return {
     phase: 'intro',
     levelIndex: 0,
@@ -170,8 +209,40 @@ export const useGame = create<GameState>((set, get) => {
     paused: false,
     runId: 0,
     lastResult: null,
+    tipWl: null,
+    hint: null,
+    photo: false,
 
     say,
+    achieve,
+
+    tip(key, extra, wl) {
+      if (volatile.tipsShown.has(key)) return
+      volatile.tipsShown.add(key)
+      sfx.hover()
+      say(key, extra)
+      if (wl) set({ tipWl: wl })
+    },
+
+    takeHint() {
+      const s = get()
+      if (s.phase !== 'playing' || s.paused) return
+      const action = nextHint(s.level, s.runtime, s.wavelength, s.spherePhase)
+      set({ hint: { ...action, t: performance.now() }, stats: { ...started(s.stats), hintsUsed: s.stats.hintsUsed + 1 } })
+      sfx.hover()
+      if (action.type === 'rotate') say('hint.rotate')
+      else if (action.type === 'wl') {
+        say('hint.wl', { wl: action.wl })
+        set({ tipWl: action.wl })
+      } else if (action.type === 'wait') say('hint.wait')
+      else say('hint.none')
+    },
+
+    setPhoto(on) {
+      const s = get()
+      if (on && (s.phase !== 'playing' || !s.paused)) return
+      set({ photo: on })
+    },
 
     startRun(levelIndex) {
       if (get().phase !== 'intro') return
@@ -190,6 +261,9 @@ export const useGame = create<GameState>((set, get) => {
         lumen: [],
         hovered: null,
         paused: false,
+        photo: false,
+        hint: null,
+        tipWl: null,
         lastResult: null,
         stats: freshStats(),
       })
@@ -209,10 +283,17 @@ export const useGame = create<GameState>((set, get) => {
 
     setWavelength(wl) {
       const s = get()
-      if (s.wavelength === wl || s.paused) return
+      if (s.wavelength === wl || s.paused || s.phase !== 'playing') return
       sfx.click(wl)
       emit('wavelength', { wl })
-      recompute({ wavelength: wl, stats: { ...s.stats, switches: s.stats.switches + 1 } })
+      volatile.idleFor = 0
+      const st = started(s.stats)
+      recompute({
+        wavelength: wl,
+        tipWl: null,
+        hint: s.hint?.type === 'wl' ? null : s.hint,
+        stats: { ...st, switches: st.switches + 1, used: st.used.includes(wl) ? st.used : [...st.used, wl] },
+      })
       if (s.phase === 'playing') say('lumen.switch', { wl })
     },
 
@@ -221,9 +302,12 @@ export const useGame = create<GameState>((set, get) => {
       const rt = s.runtime[id]
       if (!rt || s.phase !== 'playing' || s.paused) return
       sfx.rotate()
+      volatile.idleFor = 0
+      const st = started(s.stats)
       recompute({
         runtime: { ...s.runtime, [id]: { ...rt, rot: (rt.rot + 1) % 4 } },
-        stats: { ...s.stats, rotations: s.stats.rotations + 1 },
+        stats: { ...st, rotations: st.rotations + 1 },
+        hint: s.hint?.type === 'rotate' && s.hint.id === id ? null : s.hint,
       })
     },
 
@@ -278,12 +362,27 @@ export const useGame = create<GameState>((set, get) => {
       }
       sfx.clear()
       volatile.trauma = Math.min(1, volatile.trauma + 0.3)
-      const seconds = Math.max(1, Math.round((performance.now() - s.stats.startedAt) / 1000))
+      const seconds = s.stats.startedAt ? Math.max(1, Math.round((performance.now() - s.stats.startedAt) / 1000)) : 1
       const rotations = s.stats.rotations
-      const stars = 1 + (seconds <= s.level.par.seconds ? 1 : 0) + (rotations <= s.level.par.rotations ? 1 : 0)
+      const hintsUsed = s.stats.hintsUsed
+      const earned = 1 + (seconds <= s.level.par.seconds ? 1 : 0) + (rotations <= s.level.par.rotations ? 1 : 0)
+      const stars = hintsUsed > 0 ? Math.min(2, earned) : earned
       const { newRecord } = useProfile.getState().recordClear(s.level.id, { seconds, rotations, stars })
-      set({ phase: 'clear', completed: s.levelIndex + 1, lastResult: { seconds, rotations, stars, newRecord } })
+      set({
+        phase: 'clear',
+        completed: s.levelIndex + 1,
+        hint: null,
+        tipWl: null,
+        lastResult: { seconds, rotations, stars, newRecord, hintsUsed },
+      })
       say('lumen.cellDone')
+      achieve('first_light')
+      if (stars === 3) achieve('perfect')
+      if (hintsUsed === 0 && seconds <= s.level.par.seconds / 2) achieve('speedrun')
+      if (s.stats.used.length === 3) achieve('spectrum')
+      const ps = useProfile.getState()
+      const active = ps.profiles.find((p) => p.id === ps.activeId) ?? null
+      if (totalStars(active) >= LEVELS.length * 3) achieve('all_perfect')
     },
 
     advanceSpheres() {
@@ -296,8 +395,9 @@ export const useGame = create<GameState>((set, get) => {
       const s = get()
       const next = s.levelIndex + 1
       if (next >= LEVELS.length) {
-        set({ phase: 'finale', completed: LEVELS.length })
+        set({ phase: 'finale', completed: LEVELS.length, hint: null, tipWl: null })
         say('lumen.finale')
+        achieve('restorer')
         return
       }
       const level = LEVELS[next]
@@ -312,6 +412,8 @@ export const useGame = create<GameState>((set, get) => {
         hovered: null,
         paused: false,
         lastResult: null,
+        hint: null,
+        tipWl: null,
         stats: freshStats(),
         runId: s.runId + 1,
       })
@@ -331,6 +433,8 @@ export const useGame = create<GameState>((set, get) => {
         hovered: null,
         paused: false,
         lastResult: null,
+        hint: null,
+        tipWl: null,
         stats: freshStats(),
         runId: s.runId + 1,
       })
@@ -354,6 +458,9 @@ export const useGame = create<GameState>((set, get) => {
         lumen: [],
         hovered: null,
         paused: false,
+        photo: false,
+        hint: null,
+        tipWl: null,
         lastResult: null,
         stats: freshStats(),
       })
@@ -368,7 +475,11 @@ export const useGame = create<GameState>((set, get) => {
       } else {
         // the clock does not count time spent paused
         const away = performance.now() - volatile.pauseStart
-        set({ paused: false, stats: { ...s.stats, startedAt: s.stats.startedAt + away } })
+        set({
+          paused: false,
+          photo: false,
+          stats: s.stats.startedAt ? { ...s.stats, startedAt: s.stats.startedAt + away } : s.stats,
+        })
       }
     },
 

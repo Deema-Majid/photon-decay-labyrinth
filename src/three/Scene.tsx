@@ -1,15 +1,25 @@
 import { Environment, Lightformer } from '@react-three/drei'
-import { Canvas } from '@react-three/fiber'
-import { Suspense } from 'react'
+import { Canvas, useThree } from '@react-three/fiber'
+import { Suspense, useEffect } from 'react'
 import * as THREE from 'three'
 import { useGame } from '../store/useGame'
 import { Fog } from './Atmosphere'
 import { CameraRig } from './CameraRig'
 import { GameLoop } from './GameLoop'
 import { Labyrinth } from './Labyrinth'
+import { PhotoCapture, PhotoControls } from './PhotoMode'
 import { PostFX } from './PostFX'
 import { SolarPanelArray } from './SolarPanelArray'
 import { TransmissionBuffer } from './TransmissionBuffer'
+
+/** Dev only: exposes the R3F store so automated play-tests can step frames while the tab is hidden. */
+function DevBridge() {
+  const get = useThree((s) => s.get)
+  useEffect(() => {
+    ;(window as unknown as { __r3f: unknown }).__r3f = get
+  }, [get])
+  return null
+}
 
 export function Scene() {
   const phase = useGame((s) => s.phase)
@@ -32,6 +42,7 @@ export function Scene() {
         if (import.meta.env.DEV) (window as unknown as { __r3f: unknown }).__r3f = state.get
       }}
     >
+      {import.meta.env.DEV ? <DevBridge /> : null}
       <Suspense fallback={null}>
         <Fog />
         <Environment resolution={256} frames={1}>
@@ -45,6 +56,8 @@ export function Scene() {
         {showLab ? <TransmissionBuffer /> : null}
         {showLab ? <Labyrinth /> : null}
         <PostFX />
+        <PhotoControls />
+        <PhotoCapture />
       </Suspense>
     </Canvas>
   )

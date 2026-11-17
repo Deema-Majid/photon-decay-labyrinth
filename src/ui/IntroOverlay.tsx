@@ -1,16 +1,17 @@
-import { Cpu, Layers, MousePointerClick, Settings, Trophy, UserPlus } from 'lucide-react'
+import { BookOpen, Cpu, Layers, MousePointerClick, Settings, Trophy, UserPlus } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { LEVELS } from '../levels/levels'
 import { useLang, useT } from '../i18n/useT'
 import { useGame } from '../store/useGame'
 import { activeProfile, totalStars, useProfile } from '../store/useProfile'
 import { Avatar, MenuButton, Stars } from './kit'
+import { GuideModal } from './menu/GuideModal'
 import { LevelSelect } from './menu/LevelSelect'
 import { ProfileModal } from './menu/ProfileModal'
 import { RecordsModal } from './menu/RecordsModal'
 import { SettingsModal } from './menu/SettingsModal'
 
-type ModalKind = null | 'profiles' | 'create' | 'levels' | 'settings' | 'records'
+type ModalKind = null | 'profiles' | 'create' | 'levels' | 'settings' | 'records' | 'guide'
 
 /** True after a few seconds without pointer or key input. */
 function useIdle(ms: number) {
@@ -47,7 +48,12 @@ export function IntroOverlay() {
   const dim = { opacity: idle ? 0 : 1, transition: 'opacity 1400ms ease' }
 
   const continueIndex = profile ? Math.min(LEVELS.length, profile.unlocked) - 1 : 0
-  const primaryLabel = profile && continueIndex > 0 ? t('menu.continue', { n: continueIndex + 1 }) : t('menu.start')
+  const finishedAll = !!profile && LEVELS.every((l) => profile.best[l.id])
+  const primaryLabel = finishedAll
+    ? t('menu.replay')
+    : profile && continueIndex > 0
+      ? t('menu.continue', { n: continueIndex + 1 })
+      : t('menu.start')
 
   const primary = useCallback(() => {
     if (!profile) {
@@ -55,8 +61,12 @@ export function IntroOverlay() {
       setModal('create')
       return
     }
+    if (finishedAll) {
+      setModal('levels')
+      return
+    }
     startRun(continueIndex)
-  }, [profile, continueIndex, startRun])
+  }, [profile, continueIndex, startRun, finishedAll])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -158,6 +168,9 @@ export function IntroOverlay() {
           <MenuButton icon={<Trophy size={15} />} onClick={() => setModal('records')}>
             {t('menu.records')}
           </MenuButton>
+          <MenuButton icon={<BookOpen size={15} />} onClick={() => setModal('guide')}>
+            {t('menu.guide')}
+          </MenuButton>
         </div>
       </div>
 
@@ -197,6 +210,7 @@ export function IntroOverlay() {
       ) : null}
       {modal === 'settings' ? <SettingsModal onClose={close} /> : null}
       {modal === 'records' ? <RecordsModal onClose={close} /> : null}
+      {modal === 'guide' ? <GuideModal onClose={close} /> : null}
     </div>
   )
 }

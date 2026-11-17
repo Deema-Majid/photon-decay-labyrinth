@@ -108,6 +108,7 @@ export function CameraRig() {
   }, [level.id, camera, labCenter, lookCurrent])
 
   useFrame(({ clock }, dt) => {
+    if (useGame.getState().photo) return
     const t = clock.getElapsedTime()
     const now = performance.now()
     const [mx, my] = volatile.mouse

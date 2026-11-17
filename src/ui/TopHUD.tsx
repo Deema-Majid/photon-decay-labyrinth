@@ -12,6 +12,7 @@ export function TopHUD() {
   const lang = useLang()
   const active = useGame((s) => s.wavelength)
   const setWavelength = useGame((s) => s.setWavelength)
+  const tipWl = useGame((s) => s.tipWl)
   const [just, setJust] = useState<Wavelength | null>(null)
   const textDir = lang === 'ar' ? 'rtl' : 'ltr'
 
@@ -45,6 +46,7 @@ export function TopHUD() {
               style={cssVars}
               data-active={active === wl}
               data-just={just === wl}
+              data-tip={tipWl === wl && active !== wl}
               aria-pressed={active === wl}
               onClick={() => setWavelength(wl)}
               title={`${name} · ${t('hud.key')} ${meta.key}`}

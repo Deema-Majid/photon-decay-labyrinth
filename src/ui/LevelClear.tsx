@@ -47,6 +47,9 @@ export function LevelClear() {
           <span className="text-[11px] text-cyan-100/45">
             {t('clear.par', { s: level.par.seconds, r: level.par.rotations })}
           </span>
+          {result && result.hintsUsed > 0 ? (
+            <span className="text-[11px] text-amber-200/70">{t('hint.used', { n: result.hintsUsed })}</span>
+          ) : null}
         </div>
         <div className="mt-5 grid grid-cols-4 gap-2">
           {tiles.map(([label, value]) => (

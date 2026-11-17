@@ -1,7 +1,8 @@
-import { Home, Play, RotateCcw, Settings } from 'lucide-react'
+import { BookOpen, Camera, Home, Play, RotateCcw, Settings } from 'lucide-react'
 import { useState } from 'react'
 import { useT } from '../i18n/useT'
 import { useGame } from '../store/useGame'
+import { GuideModal } from './menu/GuideModal'
 import { SettingsModal } from './menu/SettingsModal'
 
 export function PauseMenu() {
@@ -9,7 +10,9 @@ export function PauseMenu() {
   const setPaused = useGame((s) => s.setPaused)
   const retryLevel = useGame((s) => s.retryLevel)
   const quitToMenu = useGame((s) => s.quitToMenu)
+  const setPhoto = useGame((s) => s.setPhoto)
   const [settings, setSettings] = useState(false)
+  const [guide, setGuide] = useState(false)
 
   const item =
     'glass flex w-full items-center gap-3 rounded-xl px-4 py-3 text-[14px] text-cyan-50/90 transition hover:border-cyan-300/40 hover:text-white'
@@ -28,6 +31,12 @@ export function PauseMenu() {
           <button type="button" onClick={retryLevel} className={item}>
             <RotateCcw size={16} /> {t('pause.retry')}
           </button>
+          <button type="button" onClick={() => setPhoto(true)} className={item}>
+            <Camera size={16} /> {t('pause.photo')}
+          </button>
+          <button type="button" onClick={() => setGuide(true)} className={item}>
+            <BookOpen size={16} /> {t('menu.guide')}
+          </button>
           <button type="button" onClick={() => setSettings(true)} className={item}>
             <Settings size={16} /> {t('menu.settings')}
           </button>
@@ -37,6 +46,7 @@ export function PauseMenu() {
         </div>
       </div>
       {settings ? <SettingsModal onClose={() => setSettings(false)} /> : null}
+      {guide ? <GuideModal onClose={() => setGuide(false)} /> : null}
     </div>
   )
 }

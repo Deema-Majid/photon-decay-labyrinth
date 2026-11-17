@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useGame, volatile } from '../store/useGame'
+import { usePhotoBars } from './photoBars'
 
 function useViewport() {
   const [vp, setVp] = useState(() => [window.innerWidth, window.innerHeight] as const)
@@ -17,11 +18,15 @@ function useViewport() {
  */
 export function Letterbox() {
   const phase = useGame((s) => s.phase)
+  const photo = useGame((s) => s.photo)
+  const photoBars = usePhotoBars((s) => s.on)
   const [w, h] = useViewport()
-  const scope = phase === 'intro' || phase === 'diving' || phase === 'finale'
-  const bar = scope
-    ? Math.min(h * 0.12, Math.max(h * 0.06, (h - w / 2.39) / 2))
-    : Math.min(h * 0.045, Math.max(0, (h - w / 2.1) / 2))
+  const scope = phase === 'intro' || phase === 'diving' || phase === 'finale' || (photo && photoBars)
+  const bar = photo && !photoBars
+    ? 0
+    : scope
+      ? Math.min(h * 0.12, Math.max(h * 0.06, (h - w / 2.39) / 2))
+      : Math.min(h * 0.045, Math.max(0, (h - w / 2.1) / 2))
   const style = {
     transition: 'height 1100ms cubic-bezier(0.2, 0.8, 0.2, 1)',
     height: `${bar}px`,

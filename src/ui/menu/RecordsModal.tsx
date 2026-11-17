@@ -1,8 +1,8 @@
-import { Trophy } from 'lucide-react'
+import { Lock, Trophy } from 'lucide-react'
 import { LEVELS } from '../../levels/levels'
 import { formatTime, levelText } from '../../i18n/strings'
 import { useLang, useT } from '../../i18n/useT'
-import { useProfile } from '../../store/useProfile'
+import { ACHIEVEMENTS, activeProfile, useProfile } from '../../store/useProfile'
 import { Avatar, Modal, Stars } from '../kit'
 
 export function RecordsModal({ onClose }: { onClose: () => void }) {
@@ -10,6 +10,8 @@ export function RecordsModal({ onClose }: { onClose: () => void }) {
   const lang = useLang()
   const profiles = useProfile((s) => s.profiles)
   const activeId = useProfile((s) => s.activeId)
+  const active = useProfile(activeProfile)
+  const unlockedCount = ACHIEVEMENTS.filter((a) => active?.achievements?.[a]).length
 
   const sections = LEVELS.map((level) => {
     const rows = profiles
@@ -23,6 +25,37 @@ export function RecordsModal({ onClose }: { onClose: () => void }) {
 
   return (
     <Modal title={t('records.title')} onClose={onClose} wide>
+      {active ? (
+        <section className="mb-5">
+          <h3 className="mb-2 flex items-baseline justify-between">
+            <span className="text-[14px] font-bold text-white">{t('ach.title')}</span>
+            <span className="font-display text-[11px] text-amber-200/80">
+              {t('ach.progress', { n: unlockedCount, max: ACHIEVEMENTS.length })}
+            </span>
+          </h3>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {ACHIEVEMENTS.map((a) => {
+              const got = !!active.achievements?.[a]
+              return (
+                <div
+                  key={a}
+                  className={`flex items-start gap-2.5 rounded-xl border p-2.5 ${got ? 'border-amber-300/30 bg-amber-300/[0.06]' : 'border-white/5 bg-white/[0.02]'}`}
+                >
+                  <span
+                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${got ? 'bg-gradient-to-br from-amber-200 to-amber-500 text-black' : 'bg-white/5 text-white/30'}`}
+                  >
+                    {got ? <Trophy size={13} /> : <Lock size={12} />}
+                  </span>
+                  <span className="flex min-w-0 flex-col">
+                    <span className={`text-[12px] font-medium ${got ? 'text-white' : 'text-white/45'}`}>{t(`ach.${a}.name`)}</span>
+                    <span className="text-[10.5px] leading-snug text-cyan-100/50">{t(`ach.${a}.desc`)}</span>
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        </section>
+      ) : null}
       <p className="mb-3 text-[12px] text-cyan-100/55">{t('records.note')}</p>
       {empty ? (
         <div className="flex flex-col items-center gap-3 py-10 text-center text-cyan-100/60">

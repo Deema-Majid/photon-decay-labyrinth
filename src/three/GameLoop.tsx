@@ -1,5 +1,6 @@
 import { useFrame } from '@react-three/fiber'
 import { useRef } from 'react'
+import { cellToWorld } from '../engine/trace'
 import { BURN_TIME, CHARGE_TIME, SHATTER_TIME, SPHERE_PERIOD, useGame, volatile } from '../store/useGame'
 
 /** Drives burn / shatter / charge timers and moving obstacles. Runs every frame, renders nothing. */
@@ -65,6 +66,54 @@ export function GameLoop() {
       volatile.sphereClock = 0
       s.advanceSpheres()
     }
+
+    coach(s, d)
   })
   return null
+}
+
+/**
+ * Contextual Lumen tips. Each fires at most once per run, only after the player
+ * has had a moment to work it out alone.
+ */
+function coach(s: ReturnType<typeof useGame.getState>, d: number) {
+  const hit = s.trace.hit
+  const cell = hit.cellId ? s.level.cells.find((c) => c.id === hit.cellId) : undefined
+  volatile.idleFor += d
+
+  const key = hit.cellId ? `${hit.cellId}:${hit.action}:${hit.wl}` : `none:${hit.at.join(',')}`
+  if (key !== volatile.stuckKey) {
+    volatile.stuckKey = key
+    volatile.stuckFor = 0
+  } else {
+    volatile.stuckFor += d
+  }
+
+  if (hit.action === 'blocked' && cell) {
+    if (cell.kind === 'sphere' && volatile.stuckFor > 1) s.tip('tip.sphere')
+    else if (volatile.stuckFor > 2.2) {
+      if (cell.kind === 'dust') s.tip('tip.useIR', undefined, 'ir')
+      else if (cell.kind === 'crystal') s.tip('tip.useUV', undefined, 'uv')
+      else if (cell.kind === 'receiver') s.tip('tip.useVIS', undefined, 'vis')
+      else if (cell.kind === 'gate' && cell.wl) s.tip('tip.gate', { wl: cell.wl })
+    }
+  }
+  const goingNowhere = hit.action === 'none' || (hit.action === 'blocked' && (cell?.kind === 'wall' || cell?.kind === 'emitter'))
+  if (goingNowhere && volatile.idleFor > 7) s.tip('tip.rotate')
+
+  // first encounters with rings and vortices along the current path
+  const segs = s.trace.segments
+  for (let i = 1; i < segs.length; i++) {
+    if (segs[i].wl !== segs[i - 1].wl) {
+      s.tip('tip.ring', { wl: segs[i].wl })
+      break
+    }
+  }
+  if (!volatile.tipsShown.has('tip.vortex')) {
+    for (const v of s.level.cells) {
+      if (v.kind !== 'vortex') continue
+      const [vx, vz] = cellToWorld(s.level, v.x, v.z)
+      if (segs.some((sg) => sg.to[0] === vx && sg.to[1] === vz)) s.tip('tip.vortex')
+    }
+  }
 }

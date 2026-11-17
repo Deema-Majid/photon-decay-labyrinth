@@ -17,6 +17,8 @@ export function Prism({ id, position, accent }: Props) {
   const rotatePrism = useGame((s) => s.rotatePrism)
   const setHovered = useGame((s) => s.setHovered)
   const buffer = useSceneRefs((s) => s.buffer)
+  const hinted = useGame((s) => !s.photo && s.hint?.type === 'rotate' && s.hint.id === id)
+  const beacon = useRef<THREE.Group>(null)
   const [hover, setHover] = useState(false)
   useCursor(hover)
   const slab = useRef<THREE.Group>(null)
@@ -45,6 +47,11 @@ export function Prism({ id, position, accent }: Props) {
       frameMat.current.emissiveIntensity = damp(frameMat.current.emissiveIntensity, hover ? 5 : 2, 8, dt)
     }
     if (ring.current) ring.current.rotation.y = t * 0.8
+    if (beacon.current) {
+      const pulse = 0.75 + Math.sin(t * 6) * 0.25
+      beacon.current.scale.set(pulse, 1, pulse)
+      beacon.current.rotation.y = t * 1.5
+    }
   })
 
   const onClick = (e: ThreeEvent<MouseEvent>) => {
@@ -67,6 +74,26 @@ export function Prism({ id, position, accent }: Props) {
         <torusGeometry args={[0.66, 0.025, 8, 48]} />
         <meshStandardMaterial color="#000" emissive={accent} emissiveIntensity={2} toneMapped={false} />
       </mesh>
+      {hinted ? (
+        <group ref={beacon}>
+          <mesh position={[0, 3, 0]}>
+            <cylinderGeometry args={[0.55, 0.85, 6, 24, 1, true]} />
+            <meshBasicMaterial
+              color="#fcd34d"
+              transparent
+              opacity={0.16}
+              blending={THREE.AdditiveBlending}
+              depthWrite={false}
+              side={THREE.DoubleSide}
+              toneMapped={false}
+            />
+          </mesh>
+          <mesh position={[0, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <ringGeometry args={[0.95, 1.12, 40]} />
+            <meshBasicMaterial color="#fcd34d" transparent opacity={0.9} toneMapped={false} side={THREE.DoubleSide} />
+          </mesh>
+        </group>
+      ) : null}
       <mesh position={[0, 0.5, 0]}>
         <cylinderGeometry args={[0.1, 0.14, 0.5, 12]} />
         <meshStandardMaterial color="#232a33" metalness={0.9} roughness={0.3} />
