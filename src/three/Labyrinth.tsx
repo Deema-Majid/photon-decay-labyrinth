@@ -1,11 +1,12 @@
-import { ContactShadows, Edges, Grid, MeshReflectorMaterial, RoundedBox } from '@react-three/drei'
+import { Edges, Grid, MeshReflectorMaterial, RoundedBox } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import { useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { cellToWorld, spherePosition } from '../engine/trace'
-import { LAB_Y, useGame } from '../store/useGame'
+import { LAB_Y, useGame, useHQ } from '../store/useGame'
 import { LabDust, LightShafts } from './Atmosphere'
 import { Beam } from './Beam'
+import { BoardShadows } from './BoardShadows'
 import { Bursts } from './Bursts'
 import { City } from './City'
 import { SolarPanelArray } from './SolarPanelArray'
@@ -174,16 +175,12 @@ function Floor({ w, d }: { w: number; d: number }) {
         fadeStrength={1.6}
         infiniteGrid
       />
-      <ContactShadows
-        key={shadowKey}
+      <BoardShadows
+        version={shadowKey}
         position={[0, 0.02, 0]}
-        scale={[w + 8, d + 8]}
-        blur={2.2}
-        far={4}
-        opacity={0.6}
+        width={w + 8}
+        height={d + 8}
         resolution={quality === 'high' ? 512 : 256}
-        frames={40}
-        color="#000a10"
       />
     </group>
   )
@@ -216,11 +213,19 @@ function Wall({ x, z, accent }: { x: number; z: number; accent: string }) {
   )
 }
 
+/** Cell kinds that carry a point light. Every level is padded to the same light count. */
+const LIT_KINDS = new Set(['dust', 'crystal', 'receiver', 'ring', 'vortex', 'sphere'])
+const CELL_LIGHT_SLOTS = 10
+
 export function Labyrinth() {
   const level = useGame((s) => s.level)
   const runtime = useGame((s) => s.runtime)
   const wavelength = useGame((s) => s.wavelength)
   const spherePhase = useGame((s) => s.spherePhase)
+  const hq = useHQ()
+  // Same number of lights in every level, so moving to the next cell reuses the compiled
+  // shaders instead of recompiling all of them during the crane shot.
+  const padLights = Math.max(0, CELL_LIGHT_SLOTS - level.cells.filter((c) => LIT_KINDS.has(c.kind)).length)
   const w = level.cols * 2
   const d = level.rows * 2
   const accent = level.palette.accent
@@ -228,11 +233,20 @@ export function Labyrinth() {
   return (
     <group position={[0, LAB_Y, 0]}>
       <Floor w={w} d={d} />
+      {Array.from({ length: padLights }).map((_, i) => (
+        <pointLight key={`pad-${i}`} visible={hq} intensity={0} distance={1} position={[0, -5, 0]} />
+      ))}
       <Conduits w={w} d={d} />
       {level.cells.map((c) => {
         const rt = runtime[c.id]
-        if (rt?.destroyed) return null
         const [x, z] = cellToWorld(level, c.x, c.z)
+        if (rt?.destroyed) {
+          // Keep a dark stand-in for the obstacle's light: removing a light changes the light
+          // count, which makes three.js recompile every lit shader and freezes the frame.
+          return c.kind === 'dust' || c.kind === 'crystal' ? (
+            <pointLight key={c.id} visible={hq} intensity={0} distance={5} position={[x, 1, z]} />
+          ) : null
+        }
         const pos: [number, number, number] = [x, 0, z]
         switch (c.kind) {
           case 'wall':

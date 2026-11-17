@@ -145,7 +145,8 @@ export function Receiver({ id, position }: P & { id: string }) {
         <meshStandardMaterial color="#223" emissive="#9ff8ff" emissiveIntensity={1.2} toneMapped={false} />
       </mesh>
       <pointLight visible={hq} ref={light} color="#00F0FF" intensity={0} distance={6} position={[0, 1.2, 0]} />
-      {locked ? <Sparkles count={30} scale={[1.6, 2, 1.6]} position={[0, 1.2, 0]} size={3} speed={0.8} color="#00F0FF" /> : null}
+      {/* always mounted so locking does not compile a new shader mid-play */}
+      <Sparkles count={30} scale={[1.6, 2, 1.6]} position={[0, 1.2, 0]} size={3} speed={0.8} color="#00F0FF" opacity={locked ? 1 : 0} />
     </group>
   )
 }

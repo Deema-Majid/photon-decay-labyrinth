@@ -1,5 +1,5 @@
 import { useFrame } from '@react-three/fiber'
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { on, type BurstKind } from '../engine/events'
 import { LAB_Y } from '../store/useGame'
@@ -40,6 +40,16 @@ function Pool({ kind, max, gravity, drag, life, speed, size, bounce, children }:
   const v = useMemo(() => new THREE.Vector3(), [])
   const s = useMemo(() => new THREE.Vector3(), [])
   const col = useMemo(() => new THREE.Color(), [])
+
+  // Create the per-instance color attribute up front. Adding it on the first burst
+  // changes the shader variant and forces a recompile in the middle of play.
+  useLayoutEffect(() => {
+    const m = mesh.current
+    if (!m) return
+    const white = new THREE.Color(1, 1, 1)
+    for (let i = 0; i < max; i++) m.setColorAt(i, white)
+    if (m.instanceColor) m.instanceColor.needsUpdate = true
+  }, [max])
 
   useEffect(
     () =>

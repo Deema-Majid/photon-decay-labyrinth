@@ -2,7 +2,7 @@ import { Environment, Lightformer } from '@react-three/drei'
 import { Canvas, useThree } from '@react-three/fiber'
 import { Suspense, useEffect } from 'react'
 import * as THREE from 'three'
-import { useGame } from '../store/useGame'
+import { useGame, volatile } from '../store/useGame'
 import { Fog } from './Atmosphere'
 import { CameraRig } from './CameraRig'
 import { GameLoop } from './GameLoop'
@@ -40,6 +40,17 @@ export function Scene() {
       camera={{ fov: 42, near: 0.1, far: 420, position: [0, 10, 27] }}
       onCreated={(state) => {
         if (import.meta.env.DEV) (window as unknown as { __r3f: unknown }).__r3f = state.get
+        // If the GPU driver drops the WebGL context (memory pressure, driver reset), three.js
+        // restores it on its own; we also step down to the lighter preset so it does not recur.
+        const canvas = state.gl.domElement
+        canvas.addEventListener('webglcontextlost', (e) => {
+          e.preventDefault()
+          console.warn('[photon] WebGL context lost, switching to Performance quality')
+          volatile.autoQualityDone = true
+          const s = useGame.getState()
+          if (s.quality === 'high') s.setQuality('low')
+        })
+        canvas.addEventListener('webglcontextrestored', () => console.info('[photon] WebGL context restored'))
       }}
     >
       {import.meta.env.DEV ? <DevBridge /> : null}

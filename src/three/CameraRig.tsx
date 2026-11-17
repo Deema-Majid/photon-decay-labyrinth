@@ -145,8 +145,8 @@ export function CameraRig() {
       volatile.focusRange = shot.range
       volatile.bokeh = shot.bokeh
       fovTarget = shot.fov
-      // dip to black around each cut
-      volatile.cut = Math.max(0, 1 - local / FADE, 1 - (shot.dur - local) / FADE)
+      // hard cuts between shots; only the very first shot fades in from black
+      volatile.cut = time < FADE * 2 && idx === 0 && performance.now() - introStart.current < SHOT_TOTAL * 1000 ? 1 - time / (FADE * 2) : 0
       if (lastShot.current !== idx) {
         lastShot.current = idx
         camera.fov = shot.fov
