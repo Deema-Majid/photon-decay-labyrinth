@@ -210,7 +210,24 @@ export const useProfile = create<ProfileState>()(
       partialize: (s) => ({ lang: s.lang, profiles: s.profiles, activeId: s.activeId, settings: s.settings }),
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<ProfileState>
-        return { ...current, ...p, settings: { ...current.settings, ...(p.settings ?? {}) } }
+        const profiles = (Array.isArray(p.profiles) ? p.profiles : [])
+          .filter((x): x is Profile => !!x && typeof x.id === 'string' && typeof x.name === 'string')
+          .map((x) => ({
+            ...x,
+            avatar: Number.isFinite(x.avatar) ? x.avatar : 0,
+            unlocked: Number.isFinite(x.unlocked) ? Math.max(1, Math.min(LEVEL_COUNT, x.unlocked)) : 1,
+            best: x.best && typeof x.best === 'object' ? x.best : {},
+            clears: Number.isFinite(x.clears) ? x.clears : 0,
+            achievements: x.achievements && typeof x.achievements === 'object' ? x.achievements : {},
+          }))
+        const activeId = profiles.some((x) => x.id === p.activeId) ? (p.activeId ?? null) : (profiles[0]?.id ?? null)
+        return {
+          ...current,
+          lang: p.lang === 'en' || p.lang === 'ar' ? p.lang : current.lang,
+          profiles,
+          activeId,
+          settings: { ...current.settings, ...(p.settings ?? {}) },
+        }
       },
     },
   ),

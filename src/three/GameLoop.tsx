@@ -92,7 +92,11 @@ function coach(s: ReturnType<typeof useGame.getState>, d: number) {
   if (hit.action === 'blocked' && cell) {
     if (cell.kind === 'sphere' && volatile.stuckFor > 1) s.tip('tip.sphere')
     else if (volatile.stuckFor > 2.2) {
-      if (cell.kind === 'dust') s.tip('tip.useIR', undefined, 'ir')
+      // if a ring upstream recolors the beam, switching the emitter will not help; skip emitter tips
+      const emitterDecides = hit.wl === s.wavelength && s.trace.segments.every((sg) => sg.wl === s.wavelength)
+      if (!emitterDecides && cell.kind !== 'gate') {
+        /* the ring tip explains this case */
+      } else if (cell.kind === 'dust') s.tip('tip.useIR', undefined, 'ir')
       else if (cell.kind === 'crystal') s.tip('tip.useUV', undefined, 'uv')
       else if (cell.kind === 'receiver') s.tip('tip.useVIS', undefined, 'vis')
       else if (cell.kind === 'gate' && cell.wl) s.tip('tip.gate', { wl: cell.wl })

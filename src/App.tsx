@@ -58,7 +58,8 @@ export default function App() {
   // the score clears up as the cell is restored
   useEffect(
     () =>
-      useGame.subscribe((s) => {
+      useGame.subscribe((s, prev) => {
+        if (s.phase === prev.phase && s.restoration === prev.restoration) return
         ambient.setClarity(s.phase === 'clear' || s.phase === 'finale' ? 1 : s.phase === 'playing' ? s.restoration : 0.2)
       }),
     [],

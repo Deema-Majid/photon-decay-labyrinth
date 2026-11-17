@@ -228,7 +228,11 @@ export const useGame = create<GameState>((set, get) => {
       const s = get()
       if (s.phase !== 'playing' || s.paused) return
       const action = nextHint(s.level, s.runtime, s.wavelength, s.spherePhase)
-      set({ hint: { ...action, t: performance.now() }, stats: { ...started(s.stats), hintsUsed: s.stats.hintsUsed + 1 } })
+      const actionable = action.type === 'rotate' || action.type === 'wl'
+      set({
+        hint: { ...action, t: performance.now() },
+        stats: actionable ? { ...started(s.stats), hintsUsed: s.stats.hintsUsed + 1 } : s.stats,
+      })
       sfx.hover()
       if (action.type === 'rotate') say('hint.rotate')
       else if (action.type === 'wl') {

@@ -40,6 +40,7 @@ export function City() {
   const q = useMemo(() => new THREE.Quaternion(), [])
   const v = useMemo(() => new THREE.Vector3(), [])
   const sc = useMemo(() => new THREE.Vector3(), [])
+  const lastEased = useRef(-1)
 
   useLayoutEffect(() => {
     if (!mesh.current) return
@@ -54,7 +55,8 @@ export function City() {
   useFrame(({ clock }, dt) => {
     const rise = volatile.worldClean
     const eased = rise * rise * (3 - 2 * rise)
-    if (mesh.current) {
+    if (mesh.current && Math.abs(eased - lastEased.current) > 1e-4) {
+      lastEased.current = eased
       data.forEach((b, i) => {
         const h = Math.max(0.05, b.h * eased)
         v.set(b.x, h / 2, b.z)

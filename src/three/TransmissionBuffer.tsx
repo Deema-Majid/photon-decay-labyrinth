@@ -1,6 +1,6 @@
 import { useFBO } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import { useGame } from '../store/useGame'
 import { transmissive, useSceneRefs } from './refs'
@@ -15,6 +15,7 @@ export function TransmissionBuffer() {
     type: THREE.HalfFloatType,
   })
   const setBuffer = useSceneRefs((s) => s.setBuffer)
+  const frame = useRef(0)
 
   useEffect(() => {
     setBuffer(fbo.texture)
@@ -23,6 +24,9 @@ export function TransmissionBuffer() {
   }, [fbo, setBuffer])
 
   useFrame(({ gl, scene, camera }) => {
+    // the refracted background barely changes frame to frame; Performance refreshes it less often
+    frame.current++
+    if (quality !== 'high' && frame.current % 3 !== 0) return
     const hidden: THREE.Object3D[] = []
     transmissive.forEach((o) => {
       if (o.visible) {

@@ -71,7 +71,9 @@ export function IntroOverlay() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (modal !== null) return
-      if (e.key === 'Enter' && !(e.target instanceof HTMLInputElement)) primary()
+      // a focused button already handles its own Enter; only act when nothing has focus
+      const onControl = e.target instanceof HTMLElement && e.target.closest('button, input, textarea, select, a')
+      if (e.key === 'Enter' && !onControl) primary()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
