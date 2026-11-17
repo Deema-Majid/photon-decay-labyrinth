@@ -5,7 +5,7 @@ import * as THREE from 'three'
 import { volatile } from '../store/useGame'
 import { dampColor } from './materials'
 import { useSceneRefs } from './refs'
-import { flareTexture, noiseTexture, solarCellTexture } from './textures'
+import { flareTexture, noiseTexture, solarCellTexture, streakTexture } from './textures'
 
 interface Props {
   position?: [number, number, number]
@@ -116,7 +116,7 @@ export function SolarPanelArray({
       mat.metalness += ((k > 0.5 ? 0.55 : 0.2) - mat.metalness) * Math.min(1, dt * 1.5)
     }
     if (dustMat.current) {
-      dustMat.current.opacity += ((k > 0.5 ? 0 : 0.85) - dustMat.current.opacity) * Math.min(1, dt * 1.5)
+      dustMat.current.opacity += ((k > 0.5 ? 0 : 0.6) - dustMat.current.opacity) * Math.min(1, dt * 1.5)
     }
     if (crusts.current) {
       const target = 1 - Math.min(1, Math.max(0, (k - 0.3) / 0.6))
@@ -208,6 +208,17 @@ export function SolarPanelArray({
               <sphereGeometry args={[4.5, 32, 32]} />
               <meshBasicMaterial color="#fff1d6" toneMapped={false} fog={false} />
             </mesh>
+            <sprite scale={[150, 4.5, 1]}>
+              <spriteMaterial
+                map={streakTexture()}
+                color="#ffc27a"
+                transparent
+                opacity={0.75}
+                blending={THREE.AdditiveBlending}
+                depthWrite={false}
+                fog={false}
+              />
+            </sprite>
             <sprite scale={[70, 70, 1]}>
               <spriteMaterial
                 map={flareTexture()}

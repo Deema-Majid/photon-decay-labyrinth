@@ -4,14 +4,16 @@ import { Scene } from './three/Scene'
 import { DiveFlash } from './ui/DiveFlash'
 import { Finale } from './ui/Finale'
 import { IntroOverlay } from './ui/IntroOverlay'
-import { Letterbox } from './ui/Letterbox'
+import { Letterbox, ShotFade } from './ui/Letterbox'
 import { LevelClear } from './ui/LevelClear'
 import { LumenPanel } from './ui/LumenPanel'
 import { StatusBar } from './ui/StatusBar'
+import { TitleCard } from './ui/TitleCard'
 import { TopHUD } from './ui/TopHUD'
 
 export default function App() {
   const phase = useGame((s) => s.phase)
+  const levelIndex = useGame((s) => s.levelIndex)
 
   useEffect(() => {
     const onMove = (e: PointerEvent) => {
@@ -38,12 +40,14 @@ export default function App() {
     <div className="fixed inset-0 overflow-hidden bg-[#06080c]">
       <Scene />
       <div className="pointer-events-none absolute inset-0">
+        <ShotFade />
         <Letterbox />
+        {phase === 'playing' ? <TitleCard key={levelIndex} /> : null}
         {phase === 'intro' ? <IntroOverlay /> : null}
         {phase === 'diving' ? <DiveFlash /> : null}
         {inGame ? <TopHUD /> : null}
         {inGame ? <StatusBar /> : null}
-        {phase !== 'intro' && phase !== 'diving' ? <LumenPanel /> : null}
+        {inGame ? <LumenPanel /> : null}
         {phase === 'clear' ? <LevelClear /> : null}
         {phase === 'finale' ? <Finale /> : null}
       </div>

@@ -179,6 +179,33 @@ export function flareTexture() {
   return t
 }
 
+/** Anamorphic lens streak: a thin horizontal line with a soft falloff. */
+export function streakTexture() {
+  const key = 'streak'
+  if (cache.has(key)) return cache.get(key)!
+  const { c, ctx } = canvas(512, 32)
+  const gx = ctx.createLinearGradient(0, 0, 512, 0)
+  gx.addColorStop(0, 'rgba(255,255,255,0)')
+  gx.addColorStop(0.35, 'rgba(255,255,255,0.25)')
+  gx.addColorStop(0.5, 'rgba(255,255,255,1)')
+  gx.addColorStop(0.65, 'rgba(255,255,255,0.25)')
+  gx.addColorStop(1, 'rgba(255,255,255,0)')
+  ctx.fillStyle = gx
+  ctx.fillRect(0, 0, 512, 32)
+  // vertical falloff
+  ctx.globalCompositeOperation = 'destination-in'
+  const gy = ctx.createLinearGradient(0, 0, 0, 32)
+  gy.addColorStop(0, 'rgba(0,0,0,0)')
+  gy.addColorStop(0.5, 'rgba(0,0,0,1)')
+  gy.addColorStop(1, 'rgba(0,0,0,0)')
+  ctx.fillStyle = gy
+  ctx.fillRect(0, 0, 512, 32)
+  const t = new THREE.CanvasTexture(c)
+  t.colorSpace = THREE.SRGBColorSpace
+  cache.set(key, t)
+  return t
+}
+
 /** Random lit windows for city facades (emissive map). */
 export function windowsTexture() {
   const key = 'windows'

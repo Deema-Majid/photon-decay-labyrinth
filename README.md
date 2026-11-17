@@ -4,6 +4,14 @@
 
 A purely 3D, cinematic WebGL puzzle game built with Three.js + React Three Fiber.
 
+## لقطات
+
+| الافتتاحية | لقطة الرافعة |
+|---|---|
+| ![شمس الصحراء فوق الألواح](docs/screenshots/01-intro-sun.jpg) | ![مصفوفة الألواح من الأعلى](docs/screenshots/02-intro-crane.jpg) |
+| **المستوى الأول** | **الختام** |
+| ![داخل خلية السيليكون](docs/screenshots/03-level1.jpg) | ![المدينة تعمل بالطاقة النظيفة](docs/screenshots/05-finale.jpg) |
+
 ## التشغيل
 
 ```bash

@@ -25,7 +25,7 @@ export function Scene() {
         antialias: false,
         powerPreference: 'high-performance',
         toneMapping: THREE.ACESFilmicToneMapping,
-        toneMappingExposure: 1.3,
+        toneMappingExposure: 0.85,
       }}
       camera={{ fov: 42, near: 0.1, far: 420, position: [0, 10, 27] }}
       onCreated={(state) => {

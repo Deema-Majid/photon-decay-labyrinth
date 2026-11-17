@@ -1,13 +1,38 @@
 import { Cpu, MousePointerClick, Sun } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { useGame } from '../store/useGame'
+
+/** True after a few seconds without pointer or key input. */
+function useIdle(ms: number) {
+  const [idle, setIdle] = useState(false)
+  useEffect(() => {
+    let id = window.setTimeout(() => setIdle(true), ms)
+    const wake = () => {
+      setIdle(false)
+      window.clearTimeout(id)
+      id = window.setTimeout(() => setIdle(true), ms)
+    }
+    window.addEventListener('pointermove', wake)
+    window.addEventListener('keydown', wake)
+    return () => {
+      window.clearTimeout(id)
+      window.removeEventListener('pointermove', wake)
+      window.removeEventListener('keydown', wake)
+    }
+  }, [ms])
+  return idle
+}
 
 export function IntroOverlay() {
   const activate = useGame((s) => s.activate)
   const quality = useGame((s) => s.quality)
   const setQuality = useGame((s) => s.setQuality)
+  const idle = useIdle(5000)
+  const dim = { opacity: idle ? 0 : 1, transition: 'opacity 1400ms ease' }
 
   return (
-    <div className="pointer-events-auto absolute inset-0 flex flex-col items-center justify-between p-6 sm:p-10">
+    <div className="pointer-events-auto absolute inset-0 z-20 flex flex-col items-center justify-between px-6 py-[13vh] sm:px-10">
+      <div className="w-full" style={dim}>
       <div className="flex w-full items-start justify-between fade-up">
         <div className="glass rounded-xl px-4 py-2 text-[11px] text-cyan-100/70">
           <span className="font-display tracking-[0.25em] text-cyan-200/80">PV CELL · SOILING LAB</span>
@@ -19,6 +44,7 @@ export function IntroOverlay() {
         >
           الجودة: {quality === 'high' ? 'سينمائية' : 'خفيفة'}
         </button>
+      </div>
       </div>
 
       <div className="flex max-w-3xl flex-col items-center text-center">
@@ -32,6 +58,7 @@ export function IntroOverlay() {
         >
           متاهة الذاكرة الضوئية
         </h1>
+        <div style={dim}>
         <p
           className="fade-up mt-5 max-w-xl text-base leading-relaxed text-cyan-50/75 sm:text-lg"
           style={{ animationDelay: '360ms' }}
@@ -39,6 +66,7 @@ export function IntroOverlay() {
           الغبار والملح والسخام يحجبون الضوء عن خلايا السيليكون. انزل داخل الخلية، وجّه الفوتونات عبر المناشير،
           وبدّل طول الموجة لتنظيف المسار وإعادة المحطة الشمسية إلى كفاءتها الكاملة.
         </p>
+        </div>
         <button
           type="button"
           onClick={activate}
@@ -49,6 +77,7 @@ export function IntroOverlay() {
         </button>
       </div>
 
+      <div style={dim}>
       <div className="fade-up flex flex-wrap items-center justify-center gap-3 text-[11px] text-cyan-100/60" style={{ animationDelay: '700ms' }}>
         <span className="glass flex items-center gap-2 rounded-lg px-3 py-2">
           <MousePointerClick size={13} /> اضغط على المنشور لتدويره
@@ -56,6 +85,7 @@ export function IntroOverlay() {
         <span className="glass flex items-center gap-2 rounded-lg px-3 py-2">
           <Cpu size={13} /> بدّل الطيف من الشريط العلوي أو المفاتيح 1 · 2 · 3
         </span>
+      </div>
       </div>
     </div>
   )

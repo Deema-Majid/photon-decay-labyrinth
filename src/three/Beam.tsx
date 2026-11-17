@@ -4,7 +4,7 @@ import * as THREE from 'three'
 import { WAVELENGTHS } from '../levels/types'
 import { LAB_Y, useGame } from '../store/useGame'
 import { createBeamAuraMaterial } from './materials'
-import { flareTexture } from './textures'
+import { flareTexture, streakTexture } from './textures'
 
 const UP = new THREE.Vector3(0, 1, 0)
 const BEAM_Y = LAB_Y + 1
@@ -56,6 +56,10 @@ export function Beam() {
   const hitLight = useRef<THREE.PointLight>(null)
   const flare = useRef<THREE.Sprite>(null)
   const flareMap = useMemo(() => flareTexture(), [])
+  const streakMap = useMemo(() => streakTexture(), [])
+  const hitStreak = useRef<THREE.Sprite>(null)
+  const lensStreak = useRef<THREE.Sprite>(null)
+  const dirTmp = useMemo(() => new THREE.Vector3(), [])
   const tmp = useMemo(() => new THREE.Vector3(), [])
 
   useFrame(({ clock }) => {
@@ -87,10 +91,24 @@ export function Beam() {
       g.position.copy(tmp)
       const light = g.children[0] as THREE.PointLight
       const sphere = g.children[1] as THREE.Mesh
+      const streak = g.children[2] as THREE.Sprite
       const col = WAVELENGTHS[seg.wl].color
       light.color.set(col)
       ;(sphere.material as THREE.MeshBasicMaterial).color.set(col)
+      ;(streak.material as THREE.SpriteMaterial).color.set(col)
       light.intensity = 10 + Math.sin(t * 20 + i) * 2
+    }
+    if (lensStreak.current) {
+      const s0 = segs[0]
+      if (s0) {
+        dirTmp.subVectors(s0.to, s0.from).normalize()
+        lensStreak.current.position.copy(s0.from).addScaledVector(dirTmp, 0.95)
+        lensStreak.current.scale.set(4.5 + Math.sin(t * 7) * 0.3, 0.22, 1)
+        ;(lensStreak.current.material as THREE.SpriteMaterial).color.set(WAVELENGTHS[s0.wl].color)
+        lensStreak.current.visible = true
+      } else {
+        lensStreak.current.visible = false
+      }
     }
     if (hitLight.current) {
       const h = trace.hit
@@ -107,6 +125,13 @@ export function Beam() {
         fm.color.set(WAVELENGTHS[h.wl].color)
         fm.rotation = t * 0.6
         flare.current.visible = h.action !== 'none'
+      }
+      if (hitStreak.current) {
+        const big = h.action === 'burn' || h.action === 'shatter' || h.action === 'receive'
+        hitStreak.current.position.set(h.at[0], BEAM_Y, h.at[1])
+        hitStreak.current.scale.set((big ? 7 : 4.2) + Math.sin(t * 13) * 0.4, big ? 0.34 : 0.24, 1)
+        ;(hitStreak.current.material as THREE.SpriteMaterial).color.set(WAVELENGTHS[h.wl].color)
+        hitStreak.current.visible = h.action !== 'none'
       }
     }
   })
@@ -134,9 +159,18 @@ export function Beam() {
             <sphereGeometry args={[0.13, 12, 12]} />
             <meshBasicMaterial color="#ffffff" toneMapped={false} />
           </mesh>
+          <sprite scale={[1.8, 0.1, 1]}>
+            <spriteMaterial map={streakMap} color="#00f0ff" transparent opacity={0.85} blending={THREE.AdditiveBlending} depthWrite={false} toneMapped={false} />
+          </sprite>
         </group>
       ))}
       <pointLight ref={hitLight} intensity={6} distance={7} decay={2} />
+      <sprite ref={hitStreak} scale={[5, 0.3, 1]}>
+        <spriteMaterial map={streakMap} color="#00f0ff" transparent opacity={0.9} blending={THREE.AdditiveBlending} depthWrite={false} toneMapped={false} />
+      </sprite>
+      <sprite ref={lensStreak} scale={[4.5, 0.22, 1]}>
+        <spriteMaterial map={streakMap} color="#ffffff" transparent opacity={0.8} blending={THREE.AdditiveBlending} depthWrite={false} toneMapped={false} />
+      </sprite>
       <sprite ref={flare} scale={[1.4, 1.4, 1]}>
         <spriteMaterial map={flareMap} color="#00f0ff" transparent blending={THREE.AdditiveBlending} depthWrite={false} toneMapped={false} />
       </sprite>

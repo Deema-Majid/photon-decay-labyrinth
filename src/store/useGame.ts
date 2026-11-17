@@ -31,6 +31,15 @@ export const volatile = {
   sphereClock: 0,
   worldClean: 0,
   autoQualityDone: false,
+  /** depth-of-field focus point, range (world units) and bokeh, written by the camera director */
+  focus: [0, 1, 0] as [number, number, number],
+  focusRange: 30,
+  bokeh: 0.8,
+  /** 0..1 black dip between intro shots */
+  cut: 0,
+  /** brief camera push-in toward a gameplay event */
+  focusEvent: null as null | { x: number; z: number; t0: number },
+  levelStart: 0,
 }
 
 export const LAB_Y = -60
@@ -138,6 +147,7 @@ export const useGame = create<GameState>((set, get) => {
       if (s.phase !== 'diving') return
       volatile.damage = {}
       volatile.charge = {}
+      volatile.levelStart = performance.now()
       set({ phase: 'playing', stats: freshStats() })
       say(`${s.level.name} — ${s.level.place}. ${s.level.intro}`)
     },
@@ -169,6 +179,7 @@ export const useGame = create<GameState>((set, get) => {
       if (!cell || !rt || rt.destroyed) return
       const [wx, wz] = cellToWorld(s.level, cell.x, cell.z)
       const pos: [number, number, number] = [wx, LAB_Y + 1, wz]
+      volatile.focusEvent = { x: wx, z: wz, t0: performance.now() }
       if (cell.kind === 'dust') {
         sfx.burn()
         emit('burst', { kind: 'embers', position: pos, color: '#ff7a1a', count: 90 })
@@ -201,6 +212,7 @@ export const useGame = create<GameState>((set, get) => {
       if (cell) {
         const [wx, wz] = cellToWorld(s.level, cell.x, cell.z)
         emit('burst', { kind: 'spark', position: [wx, LAB_Y + 1, wz], color: '#00F0FF', count: 60 })
+        volatile.focusEvent = { x: wx, z: wz, t0: performance.now() }
       }
       const runtime = { ...s.runtime, [id]: { ...rt, locked: true } }
       recompute({ runtime })
@@ -233,6 +245,8 @@ export const useGame = create<GameState>((set, get) => {
       const runtime = buildRuntime(level)
       volatile.damage = {}
       volatile.charge = {}
+      volatile.levelStart = performance.now()
+      volatile.focusEvent = null
       recompute({
         levelIndex: next,
         level,
