@@ -42,7 +42,7 @@ for (const level of LEVELS) {
           if (next) {
             if (next.locked.length === receivers.length) {
               solved = true
-              console.log(`Level ${level.id} (${level.nameEn}): SOLVABLE  destroyed=${next.destroyed.length} locked=${next.locked.length} expansions=${expansions}`)
+              console.log(`Level ${level.id} : SOLVABLE  destroyed=${next.destroyed.length} locked=${next.locked.length} expansions=${expansions}`)
               break
             }
             const k = key(next)
@@ -57,5 +57,5 @@ for (const level of LEVELS) {
       if (solved) break
     }
   }
-  if (!solved) console.log(`Level ${level.id} (${level.nameEn}): NOT SOLVABLE (states explored: ${seen.size})`)
+  if (!solved) console.log(`Level ${level.id} : NOT SOLVABLE (states explored: ${seen.size})`)
 }

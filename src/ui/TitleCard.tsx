@@ -1,14 +1,18 @@
 import { useEffect, useState } from 'react'
 import { LEVELS } from '../levels/levels'
+import { levelText } from '../i18n/strings'
+import { useLang } from '../i18n/useT'
 import { useGame } from '../store/useGame'
 
 type Stage = 'in' | 'hold' | 'out' | 'gone'
 
 /** Film-style chapter card shown over the crane shot at the start of each cell. */
 export function TitleCard() {
+  const lang = useLang()
   const level = useGame((s) => s.level)
   const levelIndex = useGame((s) => s.levelIndex)
   const [stage, setStage] = useState<Stage>('in')
+  const txt = levelText(lang, level.id)
 
   useEffect(() => {
     // stage is derived from elapsed time, so late or clumped frames can't skip the hold
@@ -29,7 +33,7 @@ export function TitleCard() {
 
   return (
     <div
-      className="absolute inset-0 z-[15] flex items-center justify-center"
+      className="absolute inset-0 z-[15] flex items-center justify-center px-6"
       style={{
         opacity: visible ? 1 : 0,
         transition: 'opacity 900ms ease',
@@ -44,20 +48,20 @@ export function TitleCard() {
           CELL {String(levelIndex + 1).padStart(2, '0')} / {String(LEVELS.length).padStart(2, '0')}
         </span>
         <h2
-          className="hud-title mt-3 text-5xl font-bold text-white sm:text-6xl"
+          className="hud-title mt-3 text-4xl font-bold text-white sm:text-6xl"
           style={{
             letterSpacing: visible ? '0' : '0.08em',
             transition: 'letter-spacing 2400ms cubic-bezier(0.2, 0.8, 0.2, 1)',
           }}
         >
-          {level.name}
+          {txt.name}
         </h2>
         <div
           className="mt-4 h-px bg-gradient-to-r from-transparent via-cyan-300 to-transparent"
           style={{ width: visible ? '260px' : '0px', transition: 'width 1400ms cubic-bezier(0.2, 0.8, 0.2, 1)' }}
         />
         <span className="mt-3 text-sm text-cyan-50/75">
-          {level.place} · <span className="font-display text-[11px] tracking-[0.25em]">{level.nameEn.toUpperCase()}</span>
+          {txt.place} · <span className={lang === 'ar' ? 'font-display text-[11px] tracking-[0.25em]' : ''}>{lang === 'ar' ? txt.altName.toUpperCase() : txt.altName}</span>
         </span>
       </div>
     </div>

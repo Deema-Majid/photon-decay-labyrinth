@@ -1,16 +1,24 @@
 import { create } from 'zustand'
 import { LEVELS } from '../levels/levels'
-import { WAVELENGTHS, type LevelDef, type Wavelength } from '../levels/types'
+import type { LevelDef, Wavelength } from '../levels/types'
 import { computeTrace, cellToWorld, type CellRuntime, type Trace } from '../engine/trace'
 import { emit } from '../engine/events'
 import { sfx } from '../audio/sfx'
+import type { Params, StringKey } from '../i18n/strings'
+import { useProfile } from './useProfile'
 
 export type Phase = 'intro' | 'diving' | 'playing' | 'clear' | 'finale'
 export type Quality = 'high' | 'low'
 
+/** Lumen lines are stored as keys so they re-render when the language changes. */
 export interface LumenMsg {
   id: number
-  text: string
+  key: StringKey
+  params?: Params
+  /** when set, the message is the intro line of this level */
+  levelId?: number
+  /** when set, wavelength names/hints are resolved at display time */
+  wl?: Wavelength
 }
 
 export interface Stats {
@@ -19,6 +27,13 @@ export interface Stats {
   shattered: number
   switches: number
   startedAt: number
+}
+
+export interface ClearResult {
+  seconds: number
+  rotations: number
+  stars: number
+  newRecord: boolean
 }
 
 /** Per-frame mutable values that never trigger React renders. */
@@ -40,6 +55,11 @@ export const volatile = {
   /** brief camera push-in toward a gameplay event */
   focusEvent: null as null | { x: number; z: number; t0: number },
   levelStart: 0,
+  /** fog density multiplier so a camera pulled back on narrow screens still sees the board */
+  fogScale: 1,
+  /** frames rendered since load, used by the loading screen */
+  frames: 0,
+  pauseStart: 0,
 }
 
 export const LAB_Y = -60
@@ -58,7 +78,11 @@ interface GameState {
   quality: Quality
   hovered: string | null
   stats: Stats
-  activate: () => void
+  paused: boolean
+  /** bumps on every (re)start of a cell, keys the title card */
+  runId: number
+  lastResult: ClearResult | null
+  startRun: (levelIndex: number) => void
   beginPlay: () => void
   setWavelength: (wl: Wavelength) => void
   rotatePrism: (id: string) => void
@@ -66,10 +90,12 @@ interface GameState {
   lockReceiver: (id: string) => void
   advanceSpheres: () => void
   nextLevel: () => void
-  restart: () => void
+  retryLevel: () => void
+  quitToMenu: () => void
+  setPaused: (paused: boolean) => void
   setHovered: (id: string | null) => void
   setQuality: (q: Quality) => void
-  say: (text: string) => void
+  say: (key: StringKey, extra?: Omit<LumenMsg, 'id' | 'key'>) => void
 }
 
 let lumenId = 0
@@ -101,6 +127,14 @@ function freshStats(): Stats {
   return { rotations: 0, burned: 0, shattered: 0, switches: 0, startedAt: performance.now() }
 }
 
+function resetVolatile() {
+  volatile.damage = {}
+  volatile.charge = {}
+  volatile.focusEvent = null
+  volatile.sphereClock = 0
+  volatile.levelStart = performance.now()
+}
+
 export const useGame = create<GameState>((set, get) => {
   const level0 = LEVELS[0]
   const runtime0 = buildRuntime(level0)
@@ -112,10 +146,12 @@ export const useGame = create<GameState>((set, get) => {
     set({ ...partial, trace, restoration })
   }
 
-  const say = (text: string) => {
+  const say: GameState['say'] = (key, extra) => {
     lumenId++
-    set((s) => ({ lumen: [...s.lumen.slice(-4), { id: lumenId, text }] }))
+    set((s) => ({ lumen: [...s.lumen.slice(-4), { id: lumenId, key, ...extra }] }))
   }
+
+  const sayLevel = (level: LevelDef) => say('lumen.levelIntro', { levelId: level.id })
 
   return {
     phase: 'intro',
@@ -128,14 +164,35 @@ export const useGame = create<GameState>((set, get) => {
     restoration: 0,
     completed: 0,
     lumen: [],
-    quality: 'high',
+    quality: useProfile.getState().settings.quality,
     hovered: null,
     stats: freshStats(),
+    paused: false,
+    runId: 0,
+    lastResult: null,
 
     say,
 
-    activate() {
+    startRun(levelIndex) {
       if (get().phase !== 'intro') return
+      const index = Math.max(0, Math.min(LEVELS.length - 1, levelIndex))
+      const level = LEVELS[index]
+      const runtime = buildRuntime(level)
+      resetVolatile()
+      volatile.trauma = 0
+      recompute({
+        levelIndex: index,
+        level,
+        runtime,
+        spherePhase: 0,
+        wavelength: 'vis',
+        completed: index,
+        lumen: [],
+        hovered: null,
+        paused: false,
+        lastResult: null,
+        stats: freshStats(),
+      })
       sfx.unlock()
       sfx.dive()
       volatile.diveStart = performance.now()
@@ -145,26 +202,24 @@ export const useGame = create<GameState>((set, get) => {
     beginPlay() {
       const s = get()
       if (s.phase !== 'diving') return
-      volatile.damage = {}
-      volatile.charge = {}
-      volatile.levelStart = performance.now()
-      set({ phase: 'playing', stats: freshStats() })
-      say(`${s.level.name} — ${s.level.place}. ${s.level.intro}`)
+      resetVolatile()
+      set({ phase: 'playing', stats: freshStats(), runId: s.runId + 1 })
+      sayLevel(s.level)
     },
 
     setWavelength(wl) {
       const s = get()
-      if (s.wavelength === wl) return
+      if (s.wavelength === wl || s.paused) return
       sfx.click(wl)
       emit('wavelength', { wl })
       recompute({ wavelength: wl, stats: { ...s.stats, switches: s.stats.switches + 1 } })
-      if (s.phase === 'playing') say(`تم التبديل إلى ${WAVELENGTHS[wl].name} (${WAVELENGTHS[wl].nm}): ${WAVELENGTHS[wl].hint}.`)
+      if (s.phase === 'playing') say('lumen.switch', { wl })
     },
 
     rotatePrism(id) {
       const s = get()
       const rt = s.runtime[id]
-      if (!rt || s.phase !== 'playing') return
+      if (!rt || s.phase !== 'playing' || s.paused) return
       sfx.rotate()
       recompute({
         runtime: { ...s.runtime, [id]: { ...rt, rot: (rt.rot + 1) % 4 } },
@@ -184,13 +239,13 @@ export const useGame = create<GameState>((set, get) => {
         sfx.burn()
         emit('burst', { kind: 'embers', position: pos, color: '#ff7a1a', count: 90 })
         volatile.trauma = Math.min(1, volatile.trauma + 0.25)
-        say('تبخّرت سحابة الغبار. الأشعة تحت الحمراء تحمل طاقة حرارية تفكك الجسيمات الناعمة بدون تلامس.')
+        say('lumen.burn')
       } else {
         sfx.shatter()
         emit('burst', { kind: 'shards', position: pos, color: '#c8f0ff', count: 70 })
         emit('burst', { kind: 'spark', position: pos, color: '#A855F7', count: 40 })
         volatile.trauma = Math.min(1, volatile.trauma + 0.55)
-        say('تحطّمت البلورة الملحية. طاقة الفوتونات فوق البنفسجية أعلى من طاقة الروابط الأيونية في الملح.')
+        say('lumen.shatter')
       }
       delete volatile.damage[id]
       recompute({
@@ -217,14 +272,18 @@ export const useGame = create<GameState>((set, get) => {
       const runtime = { ...s.runtime, [id]: { ...rt, locked: true } }
       recompute({ runtime })
       const all = s.level.cells.filter((c) => c.kind === 'receiver').every((c) => runtime[c.id].locked)
-      if (all) {
-        sfx.clear()
-        volatile.trauma = Math.min(1, volatile.trauma + 0.3)
-        set({ phase: 'clear', completed: s.levelIndex + 1 })
-        say('اكتملت استعادة الخلية. تيار الطاقة يتدفق بكفاءة كاملة.')
-      } else {
-        say('المستقبِل مقفل على الطيف المرئي. وجّه الشعاع إلى المستقبِل التالي.')
+      if (!all) {
+        say('lumen.receiverLocked')
+        return
       }
+      sfx.clear()
+      volatile.trauma = Math.min(1, volatile.trauma + 0.3)
+      const seconds = Math.max(1, Math.round((performance.now() - s.stats.startedAt) / 1000))
+      const rotations = s.stats.rotations
+      const stars = 1 + (seconds <= s.level.par.seconds ? 1 : 0) + (rotations <= s.level.par.rotations ? 1 : 0)
+      const { newRecord } = useProfile.getState().recordClear(s.level.id, { seconds, rotations, stars })
+      set({ phase: 'clear', completed: s.levelIndex + 1, lastResult: { seconds, rotations, stars, newRecord } })
+      say('lumen.cellDone')
     },
 
     advanceSpheres() {
@@ -237,34 +296,51 @@ export const useGame = create<GameState>((set, get) => {
       const s = get()
       const next = s.levelIndex + 1
       if (next >= LEVELS.length) {
-        set({ phase: 'finale' })
-        say('المحطة الشمسية تعمل بكفاءة 100%. الطاقة النظيفة تضيء المدينة.')
+        set({ phase: 'finale', completed: LEVELS.length })
+        say('lumen.finale')
         return
       }
       const level = LEVELS[next]
-      const runtime = buildRuntime(level)
-      volatile.damage = {}
-      volatile.charge = {}
-      volatile.levelStart = performance.now()
-      volatile.focusEvent = null
+      resetVolatile()
       recompute({
         levelIndex: next,
         level,
-        runtime,
+        runtime: buildRuntime(level),
         spherePhase: 0,
         wavelength: 'vis',
         phase: 'playing',
         hovered: null,
+        paused: false,
+        lastResult: null,
         stats: freshStats(),
+        runId: s.runId + 1,
       })
-      say(`${level.name} — ${level.place}. ${level.intro}`)
+      sayLevel(level)
     },
 
-    restart() {
+    retryLevel() {
+      const s = get()
+      if (s.phase !== 'playing' && s.phase !== 'clear') return
+      resetVolatile()
+      recompute({
+        runtime: buildRuntime(s.level),
+        spherePhase: 0,
+        wavelength: 'vis',
+        phase: 'playing',
+        completed: s.levelIndex,
+        hovered: null,
+        paused: false,
+        lastResult: null,
+        stats: freshStats(),
+        runId: s.runId + 1,
+      })
+      sayLevel(s.level)
+    },
+
+    quitToMenu() {
       const level = LEVELS[0]
       const runtime = buildRuntime(level)
-      volatile.damage = {}
-      volatile.charge = {}
+      resetVolatile()
       volatile.trauma = 0
       volatile.worldClean = 0
       recompute({
@@ -277,8 +353,23 @@ export const useGame = create<GameState>((set, get) => {
         completed: 0,
         lumen: [],
         hovered: null,
+        paused: false,
+        lastResult: null,
         stats: freshStats(),
       })
+    },
+
+    setPaused(paused) {
+      const s = get()
+      if (s.phase !== 'playing' || s.paused === paused) return
+      if (paused) {
+        volatile.pauseStart = performance.now()
+        set({ paused: true, hovered: null })
+      } else {
+        // the clock does not count time spent paused
+        const away = performance.now() - volatile.pauseStart
+        set({ paused: false, stats: { ...s.stats, startedAt: s.stats.startedAt + away } })
+      }
     },
 
     setHovered(id) {
@@ -287,9 +378,13 @@ export const useGame = create<GameState>((set, get) => {
 
     setQuality(q) {
       set({ quality: q })
+      useProfile.getState().setSettings({ quality: q })
     },
   }
 })
+
+/** Cinematic quality: extra dynamic lights, reflections, depth of field. */
+export const useHQ = () => useGame((s) => s.quality === 'high')
 
 export const BURN_TIME = 1.1
 export const SHATTER_TIME = 0.9

@@ -2,7 +2,7 @@ import { Sparkles, SpotLight } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
-import { LAB_Y, useGame } from '../store/useGame'
+import { LAB_Y, useGame, volatile } from '../store/useGame'
 import { dampColor } from './materials'
 
 /** Animated exponential fog + ambient/key lights that drift between the dirty and the clean palette. */
@@ -48,7 +48,7 @@ export function Fog() {
       tmp.copy(dirty).lerp(clean, k)
       dampColor(fog.color, tmp, 2, d)
       const dens = THREE.MathUtils.lerp(level.palette.fogDensity, level.cleanPalette.fogDensity, k) * 0.75
-      fog.density += (dens * (phase === 'finale' ? 0.5 : 1) - fog.density) * Math.min(1, d * 2)
+      fog.density += (dens * (phase === 'finale' ? 0.5 : volatile.fogScale) - fog.density) * Math.min(1, d * 2)
       if (ambient.current) dampColor(ambient.current.color, tmp.copy(amb0).lerp(amb1, k), 2, d)
       if (key.current) dampColor(key.current.color, tmp.copy(key0).lerp(key1, k), 2, d)
       if (rim.current) rim.current.intensity += ((0.8 + k * 1.6) - rim.current.intensity) * Math.min(1, d * 2)

@@ -2,7 +2,7 @@ import { useFrame } from '@react-three/fiber'
 import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { WAVELENGTHS } from '../levels/types'
-import { LAB_Y, useGame } from '../store/useGame'
+import { LAB_Y, useGame, useHQ } from '../store/useGame'
 import { createBeamAuraMaterial } from './materials'
 import { flareTexture, streakTexture } from './textures'
 
@@ -14,6 +14,7 @@ const SPEED = 16
 export function Beam() {
   const trace = useGame((s) => s.trace)
   const phase = useGame((s) => s.phase)
+  const hq = useHQ()
   const visible = phase === 'playing' || phase === 'clear' || phase === 'finale'
 
   const coreGeo = useMemo(() => new THREE.CylinderGeometry(0.05, 0.05, 1, 8, 1, true), [])
@@ -154,7 +155,7 @@ export function Beam() {
             if (el) packets.current[i] = el
           }}
         >
-          <pointLight intensity={10} distance={9} decay={2} color="#00f0ff" />
+          <pointLight visible={hq} intensity={10} distance={9} decay={2} color="#00f0ff" />
           <mesh>
             <sphereGeometry args={[0.13, 12, 12]} />
             <meshBasicMaterial color="#ffffff" toneMapped={false} />

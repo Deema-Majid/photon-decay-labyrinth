@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import { useRef } from 'react'
 import * as THREE from 'three'
 import { DIR_VEC, WAVELENGTHS, type Dir, type Wavelength } from '../../levels/types'
-import { useGame, volatile } from '../../store/useGame'
+import { useGame, useHQ, volatile } from '../../store/useGame'
 import { damp } from '../materials'
 
 type P = { position: [number, number, number] }
@@ -86,6 +86,7 @@ export function Emitter({ position, dir, wl }: P & { dir: Dir; wl: Wavelength })
 }
 
 export function Receiver({ id, position }: P & { id: string }) {
+  const hq = useHQ()
   const locked = useGame((s) => s.runtime[id]?.locked ?? false)
   const core = useRef<THREE.MeshStandardMaterial>(null)
   const ringA = useRef<THREE.Mesh>(null)
@@ -143,13 +144,14 @@ export function Receiver({ id, position }: P & { id: string }) {
         <torusGeometry args={[0.52, 0.03, 8, 48]} />
         <meshStandardMaterial color="#223" emissive="#9ff8ff" emissiveIntensity={1.2} toneMapped={false} />
       </mesh>
-      <pointLight ref={light} color="#00F0FF" intensity={0} distance={6} position={[0, 1.2, 0]} />
+      <pointLight visible={hq} ref={light} color="#00F0FF" intensity={0} distance={6} position={[0, 1.2, 0]} />
       {locked ? <Sparkles count={30} scale={[1.6, 2, 1.6]} position={[0, 1.2, 0]} size={3} speed={0.8} color="#00F0FF" /> : null}
     </group>
   )
 }
 
 export function EnergyRing({ position, wl }: P & { wl: Wavelength }) {
+  const hq = useHQ()
   const g = useRef<THREE.Group>(null)
   const color = WAVELENGTHS[wl].color
   useFrame(({ clock }) => {
@@ -190,12 +192,13 @@ export function EnergyRing({ position, wl }: P & { wl: Wavelength }) {
         </mesh>
       </group>
       <Sparkles count={40} scale={[2, 2, 2]} position={[0, 1, 0]} size={2.5} speed={1.2} color={color} />
-      <pointLight color={color} intensity={6} distance={5} position={[0, 1, 0]} />
+      <pointLight visible={hq} color={color} intensity={6} distance={5} position={[0, 1, 0]} />
     </group>
   )
 }
 
 export function Vortex({ position, accent }: P & { accent: string }) {
+  const hq = useHQ()
   const g = useRef<THREE.Group>(null)
   const disc = useRef<THREE.Mesh>(null)
   useFrame(({ clock }) => {
@@ -226,7 +229,7 @@ export function Vortex({ position, accent }: P & { accent: string }) {
         </mesh>
       </group>
       <Sparkles count={80} scale={[2.4, 2.4, 2.4]} position={[0, 1, 0]} size={3} speed={2.5} color={accent} noise={2} />
-      <pointLight color={accent} intensity={8} distance={6} position={[0, 1, 0]} />
+      <pointLight visible={hq} color={accent} intensity={8} distance={6} position={[0, 1, 0]} />
     </group>
   )
 }
@@ -279,6 +282,7 @@ export function Gate({ position, wl }: P & { wl: Wavelength }) {
 }
 
 export function CarbonSphere({ target }: { target: [number, number, number] }) {
+  const hq = useHQ()
   const g = useRef<THREE.Group>(null)
   const pos = useRef(new THREE.Vector3(...target))
   useFrame(({ clock }, dt) => {
@@ -306,7 +310,7 @@ export function CarbonSphere({ target }: { target: [number, number, number] }) {
         <icosahedronGeometry args={[0.75, 1]} />
         <meshStandardMaterial color="#000" emissive="#ff2200" emissiveIntensity={0.5} wireframe transparent opacity={0.35} toneMapped={false} />
       </mesh>
-      <pointLight color="#ff5a1f" intensity={3} distance={4} />
+      <pointLight visible={hq} color="#ff5a1f" intensity={3} distance={4} />
     </group>
   )
 }

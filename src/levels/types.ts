@@ -42,42 +42,20 @@ export interface Palette {
 
 export interface LevelDef {
   id: number
-  name: string
-  nameEn: string
-  place: string
   cols: number
   rows: number
   cells: CellDef[]
   palette: Palette
   cleanPalette: Palette
-  intro: string
+  /** star targets: one star for clearing, one for time, one for rotations */
+  par: { seconds: number; rotations: number }
 }
 
-export const WAVELENGTHS: Record<
-  Wavelength,
-  { color: string; name: string; nm: string; key: string; hint: string }
-> = {
-  ir: {
-    color: '#FF3B30',
-    name: 'تحت الأحمر',
-    nm: 'IR · 850nm',
-    key: '1',
-    hint: 'يبخّر سحب الغبار الناعم',
-  },
-  vis: {
-    color: '#00F0FF',
-    name: 'مرئي',
-    nm: 'VIS · 500nm',
-    key: '2',
-    hint: 'الملاحة السريعة وتغذية المستقبِلات',
-  },
-  uv: {
-    color: '#A855F7',
-    name: 'فوق البنفسجي',
-    nm: 'UV · 365nm',
-    key: '3',
-    hint: 'يكسر بلورات الملح',
-  },
+/** Display names and hints live in i18n under wl.<id>.name / wl.<id>.hint. */
+export const WAVELENGTHS: Record<Wavelength, { color: string; nm: string; key: string }> = {
+  ir: { color: '#FF3B30', nm: 'IR · 850nm', key: '1' },
+  vis: { color: '#00F0FF', nm: 'VIS · 500nm', key: '2' },
+  uv: { color: '#A855F7', nm: 'UV · 365nm', key: '3' },
 }
 
 export const DIR_VEC: Record<Dir, [number, number]> = {

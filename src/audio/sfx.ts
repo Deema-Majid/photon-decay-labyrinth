@@ -2,12 +2,13 @@ import type { Wavelength } from '../levels/types'
 
 let ctx: AudioContext | null = null
 let master: GainNode | null = null
+let volume = 0.35
 
 function ensure() {
   if (!ctx) {
     ctx = new AudioContext()
     master = ctx.createGain()
-    master.gain.value = 0.35
+    master.gain.value = volume
     master.connect(ctx.destination)
   }
   if (ctx.state === 'suspended') void ctx.resume()
@@ -51,6 +52,11 @@ const WL_FREQ: Record<Wavelength, number> = { ir: 420, vis: 720, uv: 980 }
 export const sfx = {
   unlock() {
     ensure()
+  },
+  /** 0..1 user volume; the mix itself peaks around 0.45 */
+  setVolume(v: number) {
+    volume = Math.max(0, Math.min(1, v)) * 0.45
+    if (master && ctx) master.gain.setTargetAtTime(volume, ctx.currentTime, 0.05)
   },
   click(wl: Wavelength) {
     tone(WL_FREQ[wl], 0.12, 'square', 0.12, 1.4)

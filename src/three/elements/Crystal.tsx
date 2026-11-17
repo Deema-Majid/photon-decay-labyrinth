@@ -2,7 +2,7 @@ import { MeshTransmissionMaterial } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
-import { volatile } from '../../store/useGame'
+import { useHQ, volatile } from '../../store/useGame'
 import { registerTransmissive, unregisterTransmissive, useSceneRefs } from '../refs'
 
 interface Props {
@@ -16,6 +16,7 @@ export function Crystal({ id, position }: Props) {
   const mats = useRef<THREE.MeshPhysicalMaterial[]>([])
   const light = useRef<THREE.PointLight>(null)
   const buffer = useSceneRefs((s) => s.buffer)
+  const hq = useHQ()
 
   const spires = useMemo(() => {
     let seed = position[0] * 13 + position[2] * 7 + 11
@@ -122,7 +123,7 @@ export function Crystal({ id, position }: Props) {
           </mesh>
         ))}
       </group>
-      <pointLight ref={light} color="#bfe9ff" intensity={2} distance={5} position={[0, 1.2, 0]} />
+      <pointLight visible={hq} ref={light} color="#bfe9ff" intensity={2} distance={5} position={[0, 1.2, 0]} />
     </group>
   )
 }

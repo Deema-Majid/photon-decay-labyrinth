@@ -3,13 +3,9 @@ import type { LevelDef } from './types'
 export const LEVELS: LevelDef[] = [
   {
     id: 1,
-    name: 'قشرة الصحراء',
-    nameEn: 'The Desert Crust',
-    place: 'الربع الخالي',
+    par: { seconds: 45, rotations: 4 },
     cols: 9,
     rows: 7,
-    intro:
-      'الغبار الصحراوي يغطي خلية السيليكون. استخدم الأشعة تحت الحمراء لتبخير السحب، ثم وجّه الطيف المرئي إلى المستقبِل.',
     palette: {
       fog: '#3a2410',
       fogDensity: 0.055,
@@ -45,13 +41,9 @@ export const LEVELS: LevelDef[] = [
   },
   {
     id: 2,
-    name: 'الحاجز الملحي',
-    nameEn: 'The Saline Barrier',
-    place: 'الساحل البحري',
+    par: { seconds: 75, rotations: 7 },
     cols: 10,
     rows: 8,
-    intro:
-      'رذاذ البحر ترك قشرة ملحية بلورية. الأشعة فوق البنفسجية تكسر البلورات، وحلقات الطاقة تغيّر طول الموجة في منتصف الطريق.',
     palette: {
       fog: '#071a33',
       fogDensity: 0.05,
@@ -92,13 +84,9 @@ export const LEVELS: LevelDef[] = [
   },
   {
     id: 3,
-    name: 'الضباب الصناعي',
-    nameEn: 'The Urban Smog',
-    place: 'المدينة الصناعية',
+    par: { seconds: 110, rotations: 9 },
     cols: 11,
     rows: 9,
-    intro:
-      'سخام الكربون يتحرك بين الممرات. الدوامات المغناطيسية تثني الشعاع، والبوابات لا تمرّر إلا طول موجة واحد. راقب التوقيت.',
     palette: {
       fog: '#0a0a12',
       fogDensity: 0.06,

@@ -9,6 +9,7 @@ export function GameLoop() {
   useFrame((_, dt) => {
     const d = Math.min(dt, 0.05)
     const s = useGame.getState()
+    volatile.frames++
 
     // auto quality: drop to the light preset after sustained low frame rate while playing
     const acc = fpsAcc.current
@@ -18,12 +19,12 @@ export function GameLoop() {
       const fps = acc.n / acc.t
       acc.t = 0
       acc.n = 0
-      if (s.phase === 'playing' && s.quality === 'high' && !volatile.autoQualityDone && document.visibilityState === 'visible') {
+      if (s.phase === 'playing' && !s.paused && s.quality === 'high' && !volatile.autoQualityDone && document.visibilityState === 'visible') {
         acc.slow = fps < 27 ? acc.slow + 1 : 0
         if (acc.slow >= 3) {
           volatile.autoQualityDone = true
           s.setQuality('low')
-          s.say('لاحظت انخفاض الإطارات، فخففت الجودة تلقائيًا. تقدر ترجعها «سينمائية» من الزر أسفل اليسار.')
+          s.say('lumen.autoQuality')
         }
       }
     }
@@ -33,7 +34,7 @@ export function GameLoop() {
     const targetClean = (s.completed + (s.phase === 'playing' ? s.restoration : 0)) / 3
     volatile.worldClean += (Math.min(1, targetClean) - volatile.worldClean) * Math.min(1, d * 0.8)
 
-    if (s.phase !== 'playing') return
+    if (s.phase !== 'playing' || s.paused) return
 
     const hit = s.trace.hit
     if (hit.cellId) {

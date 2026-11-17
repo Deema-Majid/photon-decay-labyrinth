@@ -2,7 +2,7 @@ import { Sparkles } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import { useMemo, useRef } from 'react'
 import * as THREE from 'three'
-import { volatile } from '../../store/useGame'
+import { useHQ, volatile } from '../../store/useGame'
 import { puffTexture } from '../textures'
 
 interface Props {
@@ -18,6 +18,7 @@ export function DustCloud({ id, position }: Props) {
   const mats = useRef<THREE.SpriteMaterial[]>([])
   const light = useRef<THREE.PointLight>(null)
   const map = useMemo(() => puffTexture(), [])
+  const hq = useHQ()
 
   const puffs = useMemo(() => {
     let seed = position[0] * 5 + position[2] * 3 + 23
@@ -77,7 +78,7 @@ export function DustCloud({ id, position }: Props) {
         ))}
       </group>
       <Sparkles count={40} scale={[1.8, 1.8, 1.8]} position={[0, 1, 0]} size={3} speed={0.6} color="#ffd79a" opacity={0.7} />
-      <pointLight ref={light} color="#ff7a1a" intensity={0} distance={5} position={[0, 1, 0]} />
+      <pointLight visible={hq} ref={light} color="#ff7a1a" intensity={0} distance={5} position={[0, 1, 0]} />
     </group>
   )
 }
