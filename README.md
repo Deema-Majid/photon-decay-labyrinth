@@ -4,6 +4,10 @@
 
 A purely 3D, cinematic WebGL puzzle game built with Three.js + React Three Fiber.
 
+**▶ العب الآن:** https://deema-majid.github.io/photon-decay-labyrinth/
+
+أفضل تجربة على متصفح سطح مكتب حديث (Chrome أو Edge) بنافذة كاملة.
+
 ## لقطات
 
 | الافتتاحية | لقطة الرافعة |
