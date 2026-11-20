@@ -8,7 +8,7 @@
 **Photon Decay Labyrinth** (متاهة الذاكرة الضوئية)
 
 ## Tagline (short pitch)
-A cinematic 3D light puzzle that teaches why dirty solar panels waste energy, then turns that lesson into a calculator that tells you when to clean a real panel and how much energy and CO₂ it saves.
+A cinematic 3D puzzle game: dive into a dusty solar cell and bend light to clean it. Then a calculator tells you when to clean your real solar panels and how much energy and CO₂ you save.
 
 ## Links
 - **Play in the browser:** https://deema-majid.github.io/photon-decay-labyrinth/
@@ -120,6 +120,8 @@ None. Development started on November 16, 2026, inside the event period. Open-so
 **Recording tips:** record in a full browser window on Cinematic quality, use Windows + Alt + R (Xbox Game Bar) or OBS, and upload to YouTube as Unlisted.
 
 ## Screenshot checklist for the Devpost gallery
+- `docs/devpost/thumbnail.png` — project thumbnail (3:2)
+- `docs/devpost/gameplay-saline.png` and `docs/devpost/gameplay-desert.png` — 1500×1000 gameplay shots
 - `docs/report/img/intro-sun.jpg` — title shot
 - `docs/report/img/level1-ir.jpg` — infrared burning dust
 - `docs/report/img/level3-hint.jpg` — hint beacon in the urban cell
