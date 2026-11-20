@@ -219,6 +219,9 @@ const ar = {
   'el.wall.name': "جدار",
   'el.wall.desc': "يوقف الشعاع.",
   'pause.photo': "وضع التصوير",
+  'webgl.title': "المتصفح أوقف الرسومات ثلاثية الأبعاد",
+  'webgl.body': "ما قدرنا نشغّل WebGL على هذا الجهاز. أغلقي التبويب وافتحيه من جديد، أو أعيدي تشغيل المتصفح، وتأكدي أن «تسريع الأجهزة» مفعّل في إعداداته.",
+  'webgl.retry': "إعادة المحاولة",
 }
 
 export type StringKey = keyof typeof ar
@@ -442,6 +445,9 @@ const en: Record<StringKey, string> = {
   'el.wall.name': "Wall",
   'el.wall.desc': "Stops the beam.",
   'pause.photo': "Photo mode",
+  'webgl.title': "Your browser stopped the 3D graphics",
+  'webgl.body': "WebGL could not start on this device. Close and reopen the tab or restart the browser, and make sure hardware acceleration is enabled in its settings.",
+  'webgl.retry': "Try again",
 }
 
 export const STRINGS: Record<Lang, Record<StringKey, string>> = { ar, en }

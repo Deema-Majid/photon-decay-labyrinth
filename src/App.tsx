@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { translate } from './i18n/strings'
 import { useLang } from './i18n/useT'
 import { ambient, sfx } from './audio/sfx'
@@ -18,9 +18,11 @@ import { StatusBar } from './ui/StatusBar'
 import { TitleCard } from './ui/TitleCard'
 import { Toasts } from './ui/Toasts'
 import { TopHUD } from './ui/TopHUD'
+import { SceneBoundary, WebGLFallback, webglAvailable } from './ui/WebGLFallback'
 
 export default function App() {
   const phase = useGame((s) => s.phase)
+  const [noWebGL, setNoWebGL] = useState(() => !webglAvailable())
   const paused = useGame((s) => s.paused)
   const photo = useGame((s) => s.photo)
   const levelIndex = useGame((s) => s.levelIndex)
@@ -101,7 +103,11 @@ export default function App() {
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-[#06080c]">
-      <Scene />
+      {noWebGL ? null : (
+        <SceneBoundary onError={() => setNoWebGL(true)}>
+          <Scene />
+        </SceneBoundary>
+      )}
       <div className="pointer-events-none absolute inset-0">
         <ShotFade />
         <Letterbox />
@@ -116,7 +122,7 @@ export default function App() {
         {paused && phase === 'playing' && !photo ? <PauseMenu /> : null}
         {photo ? <PhotoBar /> : null}
         <Toasts />
-        <LoadingScreen />
+        {noWebGL ? <WebGLFallback /> : <LoadingScreen />}
       </div>
     </div>
   )
