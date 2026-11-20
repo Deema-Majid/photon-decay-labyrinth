@@ -87,4 +87,4 @@ None. Development started on November 16, 2026, inside the event period. Open-so
 ## Links
 - **Play in the browser:** https://deema-majid.github.io/photon-decay-labyrinth/
 - **Source code:** https://github.com/Deema-Majid/photon-decay-labyrinth
-- **Project dossier (PDF):** https://github.com/Deema-Majid/photon-decay-labyrinth/blob/main/docs/Photon-Decay-Labyrinth-EN.pdf
+- **Project dossier (PDF):** https://deema-majid.github.io/photon-decay-labyrinth/Photon-Decay-Labyrinth-EN.pdf

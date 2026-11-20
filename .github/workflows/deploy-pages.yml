@@ -25,6 +25,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+      - name: Publish the project dossiers next to the game
+        run: cp docs/Photon-Decay-Labyrinth-EN.pdf docs/Photon-Decay-Labyrinth.pdf dist/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

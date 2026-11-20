@@ -13,7 +13,7 @@ A cinematic 3D puzzle game: dive into a dusty solar cell and bend light to clean
 ## Links
 - **Play in the browser:** https://deema-majid.github.io/photon-decay-labyrinth/
 - **Source code (public):** https://github.com/Deema-Majid/photon-decay-labyrinth
-- **Project dossier (PDF, English):** https://github.com/Deema-Majid/photon-decay-labyrinth/blob/main/docs/Photon-Decay-Labyrinth-EN.pdf
+- **Project dossier (PDF, English):** https://deema-majid.github.io/photon-decay-labyrinth/Photon-Decay-Labyrinth-EN.pdf
 
 ---
 
