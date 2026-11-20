@@ -1,16 +1,18 @@
-import { Building2, Droplets, Home, Leaf, Sun } from 'lucide-react'
+import { Building2, Calculator, Droplets, Home, Leaf, Sun } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { LEVELS } from '../levels/levels'
 import { useT } from '../i18n/useT'
 import { useGame } from '../store/useGame'
 import { activeProfile, totalStars, useProfile } from '../store/useProfile'
 import { Avatar, Stars } from './kit'
+import { PanelCareModal } from './menu/PanelCareModal'
 
 export function Finale() {
   const t = useT()
   const quitToMenu = useGame((s) => s.quitToMenu)
   const profile = useProfile(activeProfile)
   const [show, setShow] = useState(false)
+  const [calc, setCalc] = useState(false)
   useEffect(() => {
     const id = window.setTimeout(() => setShow(true), 2600)
     return () => window.clearTimeout(id)
@@ -35,13 +37,22 @@ export function Finale() {
             <div className="font-display text-[11px] tracking-[0.35em] text-cyan-300">IMPACT TELEMETRY · VISION 2030</div>
             <h2 className="hud-title mt-1 text-xl font-bold text-white sm:text-3xl">{t('finale.title')}</h2>
           </div>
-          <button
-            type="button"
-            onClick={quitToMenu}
-            className="btn-primary inline-flex items-center gap-2 rounded-2xl px-5 py-2.5 text-[12px]"
-          >
-            <Home size={14} /> {t('finale.menu')}
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setCalc(true)}
+              className="glass inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-[12px] text-cyan-50/90 hover:text-white"
+            >
+              <Calculator size={14} /> {t('finale.calc')}
+            </button>
+            <button
+              type="button"
+              onClick={quitToMenu}
+              className="btn-primary inline-flex items-center gap-2 rounded-2xl px-5 py-2.5 text-[12px]"
+            >
+              <Home size={14} /> {t('finale.menu')}
+            </button>
+          </div>
         </div>
         {profile ? (
           <div className="mt-4 flex items-center gap-3 rounded-2xl border border-amber-200/15 bg-amber-200/[0.04] px-3 py-2.5">
@@ -63,6 +74,7 @@ export function Finale() {
         </div>
         <p className="mt-4 text-[10px] text-cyan-100/40">{t('finale.disclaimer')}</p>
       </div>
+      {calc ? <PanelCareModal onClose={() => setCalc(false)} /> : null}
     </div>
   )
 }

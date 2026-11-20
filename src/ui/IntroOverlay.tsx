@@ -1,4 +1,4 @@
-import { BookOpen, Cpu, Layers, MousePointerClick, Settings, Trophy, UserPlus } from 'lucide-react'
+import { BookOpen, Calculator, Cpu, Layers, MousePointerClick, Settings, Trophy, UserPlus } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { LEVELS } from '../levels/levels'
 import { useLang, useT } from '../i18n/useT'
@@ -7,11 +7,12 @@ import { activeProfile, totalStars, useProfile } from '../store/useProfile'
 import { Avatar, MenuButton, Stars } from './kit'
 import { GuideModal } from './menu/GuideModal'
 import { LevelSelect } from './menu/LevelSelect'
+import { PanelCareModal } from './menu/PanelCareModal'
 import { ProfileModal } from './menu/ProfileModal'
 import { RecordsModal } from './menu/RecordsModal'
 import { SettingsModal } from './menu/SettingsModal'
 
-type ModalKind = null | 'profiles' | 'create' | 'levels' | 'settings' | 'records' | 'guide'
+type ModalKind = null | 'profiles' | 'create' | 'levels' | 'settings' | 'records' | 'guide' | 'calculator'
 
 /** True after a few seconds without pointer or key input. */
 function useIdle(ms: number) {
@@ -173,6 +174,9 @@ export function IntroOverlay() {
           <MenuButton icon={<BookOpen size={15} />} onClick={() => setModal('guide')}>
             {t('menu.guide')}
           </MenuButton>
+          <MenuButton icon={<Calculator size={15} />} onClick={() => setModal('calculator')}>
+            {t('menu.calculator')}
+          </MenuButton>
         </div>
       </div>
 
@@ -213,6 +217,7 @@ export function IntroOverlay() {
       {modal === 'settings' ? <SettingsModal onClose={close} /> : null}
       {modal === 'records' ? <RecordsModal onClose={close} /> : null}
       {modal === 'guide' ? <GuideModal onClose={close} /> : null}
+      {modal === 'calculator' ? <PanelCareModal onClose={close} /> : null}
     </div>
   )
 }

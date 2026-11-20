@@ -222,6 +222,45 @@ const ar = {
   'webgl.title': "المتصفح أوقف الرسومات ثلاثية الأبعاد",
   'webgl.body': "ما قدرنا نشغّل WebGL على هذا الجهاز. أغلقي التبويب وافتحيه من جديد، أو أعيدي تشغيل المتصفح، وتأكدي أن «تسريع الأجهزة» مفعّل في إعداداته.",
   'webgl.retry': "إعادة المحاولة",
+  'menu.calculator': "حاسبة الألواح",
+  'calc.title': "حاسبة العناية بالألواح",
+  'calc.intro': "طبّق ما تعلمته في اللعبة على لوح حقيقي في بيتك أو مدرستك: كم يخسر من الطاقة بسبب الاتساخ، ومتى يستحق التنظيف؟",
+  'calc.env': "البيئة",
+  'calc.env.desert': "غبار صحراوي",
+  'calc.env.coast': "ملح ساحلي",
+  'calc.env.city': "سخام المدن",
+  'calc.envHint.desert': "مثل خلية «قشرة الصحراء» في اللعبة.",
+  'calc.envHint.coast': "مثل خلية «الحاجز الملحي» في اللعبة.",
+  'calc.envHint.city': "مثل خلية «الضباب الصناعي». لا توجد قياسات سعودية منشورة لهذه البيئة، فالقيمة تقدير يمكنك تعديله.",
+  'calc.kwp': "حجم النظام",
+  'calc.kwpHint': "لوح منزلي واحد تقريبًا 0.4 كيلوواط، والنظام المنزلي الشائع 3 إلى 10.",
+  'calc.days': "أيام منذ آخر تنظيف",
+  'calc.rate': "معدل الاتساخ",
+  'calc.rateRange': "المدى المنشور لهذه البيئة: {min}–{max}% يوميًا",
+  'calc.threshold': "نظّف عند خسارة",
+  'calc.loss': "الخسارة الآن",
+  'calc.lostSoFar': "طاقة ضاعت منذ آخر تنظيف",
+  'calc.co2SoFar': "انبعاثات مقابلة من الشبكة",
+  'calc.saved': "لو نظّفت اليوم توفّر خلال 30 يومًا",
+  'calc.cleanNow': "وقت التنظيف الآن",
+  'calc.cleanIn': "نظّف خلال {d}",
+  'calc.interval': "التنظيف المقترح كل {d} تقريبًا",
+  'calc.never': "لا يحتاج تنظيفًا بهذا المعدل",
+  'calc.co2Saved': "التنظيف اليوم يوفّر ≈ {v} كجم CO₂",
+  'calc.perDay': "يوميًا",
+  'calc.tipsTitle': "نظّف بذكاء",
+  'calc.tip1': "نظّف في الصباح الباكر والألواح باردة، بفرشاة ناعمة وأقل كمية ماء.",
+  'calc.tip2': "لا تصعد الأسطح بنفسك. اطلب مساعدة شخص بالغ أو مختص.",
+  'calc.tip3': "اتبع إرشادات الشركة المصنّعة، وتجنب المنظفات القوية والماء المضغوط.",
+  'calc.assumptions': "كيف نحسب",
+  'calc.assumption1': "إنتاج اللوح النظيف: 5.17 كيلوواط ساعة لكل كيلوواط يوميًا، متوسط السعودية من Global Solar Atlas.",
+  'calc.assumption2': "الخسارة تزيد يوميًا بمعدل ثابت حتى حد أقصى 30%، وهو تبسيط شائع في الدراسات الميدانية.",
+  'calc.assumption3': "الانبعاثات: 0.692 كجم ثاني أكسيد الكربون لكل كيلوواط ساعة، متوسط شبكة السعودية 2024 من Ember.",
+  'calc.assumption4': "معدلات الاتساخ من قياسات منشورة (K.A.CARE في رماح، ودراسة في رابغ) وتختلف حسب الموقع والموسم. النتائج تقديرية.",
+  'calc.unit.kwh': "ك.و.س",
+  'calc.unit.kg': "كجم",
+  'calc.unit.days': "يوم",
+  'finale.calc': "جرّبها على لوح حقيقي",
 }
 
 export type StringKey = keyof typeof ar
@@ -448,6 +487,45 @@ const en: Record<StringKey, string> = {
   'webgl.title': "Your browser stopped the 3D graphics",
   'webgl.body': "WebGL could not start on this device. Close and reopen the tab or restart the browser, and make sure hardware acceleration is enabled in its settings.",
   'webgl.retry': "Try again",
+  'menu.calculator': "Panel calculator",
+  'calc.title': "Panel care calculator",
+  'calc.intro': "Apply what the game taught you to a real panel at home or school: how much energy is soiling costing, and when is cleaning worth it?",
+  'calc.env': "Environment",
+  'calc.env.desert': "Desert dust",
+  'calc.env.coast': "Coastal salt",
+  'calc.env.city': "Urban soot",
+  'calc.envHint.desert': "Like the Desert Crust cell in the game.",
+  'calc.envHint.coast': "Like the Saline Barrier cell in the game.",
+  'calc.envHint.city': "Like the Urban Smog cell. No published Saudi measurement exists for this setting, so the value is an estimate you can change.",
+  'calc.kwp': "System size",
+  'calc.kwpHint': "One home panel is about 0.4 kW; a typical home system is 3 to 10.",
+  'calc.days': "Days since last cleaning",
+  'calc.rate': "Soiling rate",
+  'calc.rateRange': "Published range for this setting: {min}–{max}% per day",
+  'calc.threshold': "Clean at a loss of",
+  'calc.loss': "Loss right now",
+  'calc.lostSoFar': "Energy lost since last cleaning",
+  'calc.co2SoFar': "Matching grid emissions",
+  'calc.saved': "Cleaning today saves over 30 days",
+  'calc.cleanNow': "Time to clean now",
+  'calc.cleanIn': "Clean within {d}",
+  'calc.interval': "Suggested cleaning about every {d}",
+  'calc.never': "No cleaning needed at this rate",
+  'calc.co2Saved': "cleaning today saves ≈ {v} kg CO₂",
+  'calc.perDay': "per day",
+  'calc.tipsTitle': "Clean smart",
+  'calc.tip1': "Clean early in the morning while panels are cool, with a soft brush and as little water as possible.",
+  'calc.tip2': "Do not climb onto roofs yourself. Ask an adult or a professional.",
+  'calc.tip3': "Follow the manufacturer guidance and avoid harsh cleaners and pressure washers.",
+  'calc.assumptions': "How we calculate",
+  'calc.assumption1': "Clean output: 5.17 kWh per kWp per day, the Saudi average from the Global Solar Atlas.",
+  'calc.assumption2': "Loss grows by a fixed rate each day up to a 30% cap, a common simplification in field studies.",
+  'calc.assumption3': "Emissions: 0.692 kg CO2 per kWh, the 2024 Saudi grid average from Ember.",
+  'calc.assumption4': "Soiling rates come from published measurements (K.A.CARE at Rumah, a study in Rabigh) and vary by site and season. Results are estimates.",
+  'calc.unit.kwh': "kWh",
+  'calc.unit.kg': "kg",
+  'calc.unit.days': "days",
+  'finale.calc': "Try it on a real panel",
 }
 
 export const STRINGS: Record<Lang, Record<StringKey, string>> = { ar, en }
@@ -469,6 +547,15 @@ export function levelText(lang: Lang, id: number) {
     intro: translate(lang, k('intro')),
     altName: translate(other, k('name')),
   }
+}
+
+/** Day counts with correct Arabic plural forms. */
+export function formatDays(lang: Lang, n: number) {
+  if (lang === 'en') return n === 1 ? '1 day' : `${n} days`
+  if (n === 1) return 'يوم واحد'
+  if (n === 2) return 'يومين'
+  if (n >= 3 && n <= 10) return `${n} أيام`
+  return `${n} يومًا`
 }
 
 export function formatTime(seconds: number) {
