@@ -1,0 +1,887 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<title>Photon Decay Labyrinth — Project dossier</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #06080c;
+    --bg2: #0a1018;
+    --panel: rgba(10, 18, 28, 0.78);
+    --line: rgba(0, 240, 255, 0.22);
+    --line-soft: rgba(0, 240, 255, 0.1);
+    --cyan: #00f0ff;
+    --cyan-soft: #9ff8ff;
+    --ir: #ff3b30;
+    --uv: #a855f7;
+    --amber: #fcd34d;
+    --ink: #e6fbff;
+    --muted: rgba(207, 250, 254, 0.66);
+    --faint: rgba(207, 250, 254, 0.42);
+  }
+  @page { size: A4; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); }
+  body {
+    font-family: 'Tajawal', system-ui, sans-serif;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    font-size: 10.5pt;
+    line-height: 1.75;
+  }
+  .page {
+    position: relative;
+    width: 210mm;
+    height: 297mm;
+    padding: 20mm 18mm 22mm;
+    overflow: hidden;
+    page-break-after: always;
+    background:
+      radial-gradient(120% 60% at 100% 0%, rgba(0, 240, 255, 0.07), transparent 60%),
+      radial-gradient(90% 50% at 0% 100%, rgba(168, 85, 247, 0.07), transparent 60%),
+      var(--bg);
+  }
+  .page:last-child { page-break-after: auto; }
+  /* thin neon frame + grid texture */
+  .page::before {
+    content: '';
+    position: absolute;
+    inset: 8mm;
+    border: 1px solid var(--line-soft);
+    border-radius: 6mm;
+    pointer-events: none;
+  }
+  .page::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0, 240, 255, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 240, 255, 0.025) 1px, transparent 1px);
+    background-size: 10mm 10mm;
+    pointer-events: none;
+  }
+  .page > * { position: relative; z-index: 1; }
+  .folio {
+    position: absolute;
+    z-index: 2;
+    bottom: 11mm;
+    left: 18mm;
+    right: 18mm;
+    display: flex;
+    justify-content: space-between;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 6.5pt;
+    letter-spacing: 0.3em;
+    color: var(--faint);
+  }
+  .kicker {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 7.5pt;
+    letter-spacing: 0.4em;
+    color: var(--cyan);
+    opacity: 0.85;
+  }
+  h1, h2, h3 { margin: 0; font-weight: 800; color: #fff; }
+  h2 {
+    font-size: 24pt;
+    line-height: 1.25;
+    margin-top: 2mm;
+    text-shadow: 0 0 22px rgba(0, 240, 255, 0.25);
+  }
+  h3 { font-size: 13pt; margin-bottom: 1.5mm; }
+  p { margin: 0 0 3mm; color: var(--muted); }
+  .lead { font-size: 12pt; color: rgba(230, 251, 255, 0.85); line-height: 1.85; }
+  .rule {
+    height: 1px;
+    margin: 5mm 0 6mm;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    opacity: 0.6;
+  }
+  .glass {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 4mm;
+    padding: 5mm;
+    box-shadow: 0 0 0 1px rgba(0, 240, 255, 0.03) inset, 0 6mm 14mm rgba(0, 0, 0, 0.35);
+  }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4mm; }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3.5mm; }
+  .shot {
+    border-radius: 3.5mm;
+    border: 1px solid var(--line);
+    overflow: hidden;
+    background: #000;
+    box-shadow: 0 0 18px rgba(0, 240, 255, 0.08);
+  }
+  .shot img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .cap { font-size: 8.5pt; color: var(--faint); margin-top: 1.5mm; }
+  .stat .n {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 20pt;
+    font-weight: 800;
+    color: #fff;
+    text-shadow: 0 0 14px rgba(0, 240, 255, 0.45);
+    line-height: 1.2;
+  }
+  .stat .l { font-size: 9pt; color: var(--muted); }
+  .tag {
+    display: inline-block;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 6.5pt;
+    letter-spacing: 0.2em;
+    padding: 0.8mm 2.4mm;
+    border-radius: 99px;
+    border: 1px solid var(--line);
+    color: var(--cyan-soft);
+    margin-inline-end: 1.5mm;
+  }
+  ul.clean { list-style: none; margin: 0; padding: 0; }
+  ul.clean li { position: relative; padding-inline-start: 5mm; margin-bottom: 2mm; color: var(--muted); }
+  ul.clean li::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: 0;
+    top: 2.4mm;
+    width: 2mm;
+    height: 2mm;
+    border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 6px var(--cyan);
+  }
+  ul.clean li b { color: #fff; font-weight: 700; }
+  table { width: 100%; border-collapse: separate; border-spacing: 0 1.4mm; font-size: 9.5pt; }
+  th { text-align: start; font-weight: 500; color: var(--faint); font-size: 8.5pt; padding: 0 3mm; }
+  td { background: rgba(255, 255, 255, 0.025); padding: 2.4mm 3mm; color: var(--muted); }
+  td:first-child { border-radius: 2.5mm 0 0 2.5mm; color: #fff; }
+  td:last-child { border-radius: 0 2.5mm 2.5mm 0; }
+  .num { font-family: 'Orbitron', sans-serif; font-size: 8.5pt; color: #fff; direction: ltr; unicode-bidi: isolate; white-space: nowrap; }
+  .ltr { direction: ltr; unicode-bidi: isolate; }
+  .dot { display: inline-block; width: 2.6mm; height: 2.6mm; border-radius: 50%; vertical-align: middle; margin-inline-end: 2mm; }
+  .wave { border-radius: 4mm; padding: 4.5mm; border: 1px solid; }
+  .wave .h { display: flex; flex-direction: column; align-items: flex-start; gap: 0.5mm; }
+  .wave .nm { font-family: 'Orbitron', sans-serif; font-size: 7pt; letter-spacing: 0.15em; opacity: 0.8; }
+
+  /* cover */
+  .cover { padding: 0; }
+  .cover .bg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .cover .veil {
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(180deg, rgba(6, 8, 12, 0.35) 0%, rgba(6, 8, 12, 0.15) 30%, rgba(6, 8, 12, 0.85) 62%, #06080c 100%);
+  }
+  .cover .bars::before, .cover .bars::after {
+    content: ''; position: absolute; left: 0; right: 0; height: 16mm; background: #000; z-index: 2;
+  }
+  .cover .bars::before { top: 0; }
+  .cover .bars::after { bottom: 0; }
+  .cover .content { position: absolute; z-index: 3; left: 18mm; right: 18mm; bottom: 30mm; }
+  .cover h1 {
+    font-size: 40pt; line-height: 1.15; margin: 3mm 0 2mm;
+    text-shadow: 0 0 30px rgba(0, 240, 255, 0.45);
+  }
+  .cover .en { font-family: 'Orbitron', sans-serif; font-size: 13pt; letter-spacing: 0.22em; color: var(--cyan-soft); direction: ltr; text-align: right; }
+  .cover .meta { display: flex; gap: 6mm; margin-top: 8mm; font-size: 9pt; color: var(--muted); }
+  .cover .meta b { display: block; color: #fff; font-weight: 700; }
+
+  .toc li { display: flex; justify-content: space-between; border-bottom: 1px dashed var(--line-soft); padding: 2.2mm 0; color: var(--muted); }
+  .toc li span:last-child { font-family: 'Orbitron', sans-serif; font-size: 8pt; color: var(--cyan-soft); }
+
+  .flow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2.5mm; }
+  .flow .step { text-align: center; padding: 3.5mm 2mm; }
+  .flow .step .i { font-family: 'Orbitron', sans-serif; font-size: 8pt; color: var(--cyan); letter-spacing: 0.2em; }
+  .flow .step .t { font-weight: 700; color: #fff; font-size: 10pt; }
+  .flow .step .d { font-size: 8pt; color: var(--faint); line-height: 1.5; }
+
+  .arch { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3mm; }
+  .arch .box { padding: 3.5mm; border-radius: 3mm; border: 1px solid var(--line); background: rgba(0, 240, 255, 0.04); }
+  .arch .box .t { font-family: 'Orbitron', sans-serif; font-size: 7.5pt; letter-spacing: 0.15em; color: var(--cyan); }
+  .arch .box .d { font-size: 8.5pt; color: var(--muted); line-height: 1.55; }
+  .arch .wide { grid-column: span 3; text-align: center; }
+
+  .dense { font-size: 9.6pt; line-height: 1.6; }
+  .dense .glass { padding: 4mm; }
+  .dense ul.clean li { margin-bottom: 1.2mm; }
+  .dense ul.clean li::before { top: 2mm; }
+  .dense h2 { font-size: 22pt; }
+  .dense .rule { margin: 4mm 0 5mm; }
+  .quote {
+    border-inline-start: 2px solid var(--cyan);
+    padding: 2mm 5mm;
+    font-size: 11.5pt;
+    color: rgba(230, 251, 255, 0.85);
+    background: linear-gradient(90deg, rgba(0, 240, 255, 0.06), transparent);
+    border-radius: 0 3mm 3mm 0;
+  }
+
+  /* English edition */
+  .cover h1.en-title { font-family: 'Orbitron', sans-serif; font-size: 28pt; letter-spacing: 0.04em; line-height: 1.2; }
+  .cover .en { font-family: 'Tajawal', sans-serif; font-size: 15pt; letter-spacing: 0; direction: rtl; text-align: left; }
+  .lead, p, li { hyphens: manual; }
+  .cover .meta { justify-content: space-between; font-size: 8pt; gap: 4mm; }
+  .cover .meta > div { white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<!-- 1. COVER -->
+<section class="page cover">
+  <svg class="bg" viewBox="0 0 210 297" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#140d08" />
+        <stop offset="0.38" stop-color="#2a1708" />
+        <stop offset="0.4" stop-color="#0b0f16" />
+        <stop offset="1" stop-color="#06080c" />
+      </linearGradient>
+      <radialGradient id="sunGlow" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0" stop-color="#ffd59a" stop-opacity="0.75" />
+        <stop offset="0.35" stop-color="#ff9a3c" stop-opacity="0.28" />
+        <stop offset="1" stop-color="#ff9a3c" stop-opacity="0" />
+      </radialGradient>
+      <linearGradient id="streak" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#ffc27a" stop-opacity="0" />
+        <stop offset="0.5" stop-color="#ffe3b8" stop-opacity="0.95" />
+        <stop offset="1" stop-color="#ffc27a" stop-opacity="0" />
+      </linearGradient>
+      <radialGradient id="hit" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0" stop-color="#ffffff" stop-opacity="0.55" />
+        <stop offset="1" stop-color="#00F0FF" stop-opacity="0" />
+      </radialGradient>
+      <linearGradient id="floorFade" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#06080c" stop-opacity="0.9" />
+        <stop offset="0.25" stop-color="#06080c" stop-opacity="0" />
+        <stop offset="0.6" stop-color="#06080c" stop-opacity="0.2" />
+        <stop offset="1" stop-color="#06080c" stop-opacity="0.95" />
+      </linearGradient>
+      <filter id="blur1" filterUnits="userSpaceOnUse" x="-20" y="-20" width="250" height="340"><feGaussianBlur stdDeviation="0.6" /></filter>
+      <filter id="blur3" filterUnits="userSpaceOnUse" x="-20" y="-20" width="250" height="340"><feGaussianBlur stdDeviation="2.2" /></filter>
+    </defs>
+    <rect width="210" height="297" fill="url(#sky)" />
+    <circle cx="152" cy="70" r="44" fill="url(#sunGlow)" />
+    <circle cx="152" cy="70" r="9" fill="#fff4dd" />
+    <rect x="20" y="69.3" width="264" height="1.4" fill="url(#streak)" />
+    <rect x="70" y="69.75" width="164" height="0.5" fill="#fff" opacity="0.7" />
+    <g stroke="#00F0FF" stroke-width="0.22" opacity="0.32">
+<line x1="105" y1="112" x2="-259" y2="297" />
+<line x1="105" y1="112" x2="-233" y2="297" />
+<line x1="105" y1="112" x2="-207" y2="297" />
+<line x1="105" y1="112" x2="-181" y2="297" />
+<line x1="105" y1="112" x2="-155" y2="297" />
+<line x1="105" y1="112" x2="-129" y2="297" />
+<line x1="105" y1="112" x2="-103" y2="297" />
+<line x1="105" y1="112" x2="-77" y2="297" />
+<line x1="105" y1="112" x2="-51" y2="297" />
+<line x1="105" y1="112" x2="-25" y2="297" />
+<line x1="105" y1="112" x2="1" y2="297" />
+<line x1="105" y1="112" x2="27" y2="297" />
+<line x1="105" y1="112" x2="53" y2="297" />
+<line x1="105" y1="112" x2="79" y2="297" />
+<line x1="105" y1="112" x2="105" y2="297" />
+<line x1="105" y1="112" x2="131" y2="297" />
+<line x1="105" y1="112" x2="157" y2="297" />
+<line x1="105" y1="112" x2="183" y2="297" />
+<line x1="105" y1="112" x2="209" y2="297" />
+<line x1="105" y1="112" x2="235" y2="297" />
+<line x1="105" y1="112" x2="261" y2="297" />
+<line x1="105" y1="112" x2="287" y2="297" />
+<line x1="105" y1="112" x2="313" y2="297" />
+<line x1="105" y1="112" x2="339" y2="297" />
+<line x1="105" y1="112" x2="365" y2="297" />
+<line x1="105" y1="112" x2="391" y2="297" />
+<line x1="105" y1="112" x2="417" y2="297" />
+<line x1="105" y1="112" x2="443" y2="297" />
+<line x1="105" y1="112" x2="469" y2="297" />
+<line x1="-40" y1="112.00" x2="250" y2="112.00" />
+<line x1="-40" y1="113.58" x2="250" y2="113.58" />
+<line x1="-40" y1="115.67" x2="250" y2="115.67" />
+<line x1="-40" y1="118.43" x2="250" y2="118.43" />
+<line x1="-40" y1="122.08" x2="250" y2="122.08" />
+<line x1="-40" y1="126.89" x2="250" y2="126.89" />
+<line x1="-40" y1="133.23" x2="250" y2="133.23" />
+<line x1="-40" y1="141.61" x2="250" y2="141.61" />
+<line x1="-40" y1="152.67" x2="250" y2="152.67" />
+<line x1="-40" y1="167.27" x2="250" y2="167.27" />
+<line x1="-40" y1="186.55" x2="250" y2="186.55" />
+<line x1="-40" y1="211.98" x2="250" y2="211.98" />
+<line x1="-40" y1="245.56" x2="250" y2="245.56" />
+<line x1="-40" y1="289.89" x2="250" y2="289.89" />
+    </g>
+    <rect y="112" width="210" height="185" fill="url(#floorFade)" />
+    <line x1="0" y1="112" x2="210" y2="112" stroke="#ffb066" stroke-width="0.35" opacity="0.6" />
+    <circle cx="68.0" cy="47.2" r="0.51" fill="#ffcf8a" opacity="0.60" />
+<circle cx="19.8" cy="124.9" r="0.65" fill="#ffcf8a" opacity="0.17" />
+<circle cx="91.1" cy="32.6" r="0.20" fill="#ffffff" opacity="0.18" />
+<circle cx="118.7" cy="190.5" r="0.50" fill="#ffcf8a" opacity="0.47" />
+<circle cx="83.3" cy="195.7" r="0.18" fill="#ffcf8a" opacity="0.31" />
+<circle cx="30.3" cy="41.2" r="0.32" fill="#ffcf8a" opacity="0.21" />
+<circle cx="120.0" cy="53.8" r="0.20" fill="#ffcf8a" opacity="0.46" />
+<circle cx="130.0" cy="109.4" r="0.44" fill="#9ff8ff" opacity="0.41" />
+<circle cx="193.9" cy="85.1" r="0.29" fill="#ffcf8a" opacity="0.53" />
+<circle cx="51.3" cy="123.4" r="0.44" fill="#9ff8ff" opacity="0.55" />
+<circle cx="60.5" cy="196.4" r="0.21" fill="#ffffff" opacity="0.24" />
+<circle cx="71.8" cy="188.0" r="0.38" fill="#ffcf8a" opacity="0.57" />
+<circle cx="120.3" cy="177.6" r="0.32" fill="#9ff8ff" opacity="0.48" />
+<circle cx="121.8" cy="102.1" r="0.61" fill="#9ff8ff" opacity="0.41" />
+<circle cx="139.5" cy="30.9" r="0.54" fill="#ffffff" opacity="0.31" />
+<circle cx="81.0" cy="140.4" r="0.16" fill="#ffffff" opacity="0.35" />
+<circle cx="128.3" cy="108.9" r="0.27" fill="#9ff8ff" opacity="0.22" />
+<circle cx="52.0" cy="90.4" r="0.63" fill="#ffcf8a" opacity="0.24" />
+<circle cx="84.3" cy="70.0" r="0.23" fill="#ffffff" opacity="0.63" />
+<circle cx="58.5" cy="94.8" r="0.35" fill="#ffffff" opacity="0.68" />
+<circle cx="31.7" cy="51.7" r="0.28" fill="#ffcf8a" opacity="0.16" />
+<circle cx="174.5" cy="52.8" r="0.31" fill="#ffcf8a" opacity="0.38" />
+<circle cx="77.5" cy="121.9" r="0.67" fill="#ffcf8a" opacity="0.40" />
+<circle cx="182.9" cy="191.3" r="0.52" fill="#ffffff" opacity="0.37" />
+<circle cx="82.8" cy="106.7" r="0.37" fill="#ffcf8a" opacity="0.19" />
+<circle cx="43.8" cy="49.2" r="0.34" fill="#ffcf8a" opacity="0.21" />
+<circle cx="119.0" cy="116.6" r="0.67" fill="#ffcf8a" opacity="0.19" />
+<circle cx="43.7" cy="87.7" r="0.50" fill="#9ff8ff" opacity="0.48" />
+<circle cx="99.6" cy="40.8" r="0.42" fill="#ffffff" opacity="0.41" />
+<circle cx="65.5" cy="45.9" r="0.56" fill="#9ff8ff" opacity="0.41" />
+<circle cx="145.3" cy="112.9" r="0.26" fill="#9ff8ff" opacity="0.23" />
+<circle cx="114.1" cy="24.9" r="0.44" fill="#ffcf8a" opacity="0.53" />
+<circle cx="54.8" cy="86.0" r="0.24" fill="#ffcf8a" opacity="0.44" />
+<circle cx="163.6" cy="79.3" r="0.27" fill="#ffcf8a" opacity="0.59" />
+<circle cx="171.8" cy="153.2" r="0.27" fill="#ffffff" opacity="0.35" />
+<circle cx="6.1" cy="25.0" r="0.30" fill="#9ff8ff" opacity="0.26" />
+<circle cx="127.1" cy="82.0" r="0.59" fill="#9ff8ff" opacity="0.68" />
+<circle cx="76.6" cy="59.7" r="0.27" fill="#ffcf8a" opacity="0.34" />
+<circle cx="101.4" cy="197.3" r="0.49" fill="#ffcf8a" opacity="0.41" />
+<circle cx="137.1" cy="163.9" r="0.20" fill="#ffcf8a" opacity="0.65" />
+<circle cx="164.3" cy="155.0" r="0.41" fill="#ffcf8a" opacity="0.39" />
+<circle cx="133.5" cy="35.6" r="0.67" fill="#ffffff" opacity="0.40" />
+<circle cx="156.1" cy="35.3" r="0.24" fill="#ffcf8a" opacity="0.17" />
+<circle cx="124.1" cy="103.8" r="0.51" fill="#ffffff" opacity="0.51" />
+<circle cx="73.6" cy="118.8" r="0.22" fill="#ffcf8a" opacity="0.59" />
+<circle cx="152.5" cy="38.5" r="0.56" fill="#ffcf8a" opacity="0.39" />
+<circle cx="183.1" cy="168.7" r="0.27" fill="#9ff8ff" opacity="0.27" />
+<circle cx="105.2" cy="157.5" r="0.33" fill="#ffffff" opacity="0.61" />
+<circle cx="12.8" cy="153.2" r="0.64" fill="#ffffff" opacity="0.60" />
+<circle cx="184.4" cy="43.5" r="0.23" fill="#ffcf8a" opacity="0.63" />
+<circle cx="163.1" cy="129.5" r="0.58" fill="#ffcf8a" opacity="0.24" />
+<circle cx="99.4" cy="150.5" r="0.46" fill="#9ff8ff" opacity="0.53" />
+<circle cx="111.5" cy="106.8" r="0.58" fill="#ffcf8a" opacity="0.29" />
+<circle cx="58.2" cy="159.0" r="0.43" fill="#ffcf8a" opacity="0.57" />
+<circle cx="191.6" cy="99.8" r="0.49" fill="#ffcf8a" opacity="0.53" />
+<circle cx="95.0" cy="116.0" r="0.41" fill="#ffcf8a" opacity="0.53" />
+<circle cx="184.1" cy="189.6" r="0.29" fill="#ffcf8a" opacity="0.61" />
+<circle cx="28.8" cy="41.9" r="0.39" fill="#ffcf8a" opacity="0.52" />
+<circle cx="90.0" cy="58.3" r="0.32" fill="#ffcf8a" opacity="0.64" />
+<circle cx="32.4" cy="148.9" r="0.51" fill="#ffcf8a" opacity="0.29" />
+<circle cx="28.8" cy="104.2" r="0.56" fill="#ffcf8a" opacity="0.37" />
+<circle cx="102.3" cy="198.2" r="0.61" fill="#ffcf8a" opacity="0.54" />
+<circle cx="208.8" cy="92.7" r="0.38" fill="#9ff8ff" opacity="0.33" />
+<circle cx="151.7" cy="23.5" r="0.45" fill="#ffffff" opacity="0.54" />
+<circle cx="80.7" cy="113.1" r="0.31" fill="#ffcf8a" opacity="0.21" />
+<circle cx="192.9" cy="61.1" r="0.63" fill="#ffcf8a" opacity="0.30" />
+<circle cx="8.3" cy="160.2" r="0.30" fill="#ffcf8a" opacity="0.60" />
+<circle cx="178.4" cy="141.7" r="0.67" fill="#ffffff" opacity="0.23" />
+<circle cx="193.0" cy="122.7" r="0.54" fill="#ffcf8a" opacity="0.30" />
+<circle cx="167.9" cy="53.0" r="0.64" fill="#9ff8ff" opacity="0.67" />
+<circle cx="133.2" cy="164.3" r="0.20" fill="#ffcf8a" opacity="0.19" />
+<circle cx="181.2" cy="101.7" r="0.34" fill="#ffffff" opacity="0.66" />
+<circle cx="56.3" cy="43.3" r="0.44" fill="#ffcf8a" opacity="0.67" />
+<circle cx="203.5" cy="67.1" r="0.25" fill="#9ff8ff" opacity="0.50" />
+<circle cx="111.5" cy="57.1" r="0.40" fill="#ffcf8a" opacity="0.30" />
+<circle cx="168.8" cy="199.0" r="0.17" fill="#ffcf8a" opacity="0.55" />
+<circle cx="115.7" cy="54.1" r="0.41" fill="#ffffff" opacity="0.21" />
+<circle cx="172.0" cy="97.8" r="0.42" fill="#ffffff" opacity="0.68" />
+<circle cx="64.6" cy="58.7" r="0.28" fill="#ffcf8a" opacity="0.61" />
+<circle cx="148.4" cy="134.5" r="0.37" fill="#9ff8ff" opacity="0.69" />
+<circle cx="175.8" cy="22.6" r="0.49" fill="#9ff8ff" opacity="0.39" />
+<circle cx="11.6" cy="139.7" r="0.36" fill="#9ff8ff" opacity="0.48" />
+<circle cx="145.5" cy="28.1" r="0.25" fill="#9ff8ff" opacity="0.40" />
+<circle cx="55.3" cy="193.1" r="0.68" fill="#9ff8ff" opacity="0.28" />
+<circle cx="202.8" cy="75.7" r="0.35" fill="#ffcf8a" opacity="0.33" />
+<circle cx="17.6" cy="70.2" r="0.51" fill="#ffcf8a" opacity="0.43" />
+<circle cx="1.0" cy="67.6" r="0.20" fill="#ffffff" opacity="0.47" />
+<circle cx="82.7" cy="73.9" r="0.50" fill="#ffcf8a" opacity="0.47" />
+<circle cx="111.1" cy="155.1" r="0.51" fill="#ffffff" opacity="0.57" />
+<circle cx="151.3" cy="109.0" r="0.31" fill="#ffcf8a" opacity="0.17" />
+<circle cx="175.4" cy="180.5" r="0.50" fill="#ffcf8a" opacity="0.65" />
+<circle cx="158.1" cy="122.3" r="0.60" fill="#ffcf8a" opacity="0.60" />
+<circle cx="122.7" cy="180.7" r="0.53" fill="#ffcf8a" opacity="0.20" />
+<circle cx="8.8" cy="134.7" r="0.68" fill="#ffffff" opacity="0.61" />
+<circle cx="117.3" cy="133.0" r="0.49" fill="#ffcf8a" opacity="0.42" />
+<circle cx="0.7" cy="163.6" r="0.56" fill="#ffcf8a" opacity="0.51" />
+<circle cx="13.9" cy="152.6" r="0.29" fill="#ffcf8a" opacity="0.62" />
+<circle cx="49.3" cy="156.2" r="0.28" fill="#ffffff" opacity="0.42" />
+<circle cx="80.3" cy="106.2" r="0.53" fill="#ffcf8a" opacity="0.49" />
+<circle cx="135.0" cy="33.9" r="0.23" fill="#9ff8ff" opacity="0.51" />
+<circle cx="145.5" cy="131.8" r="0.22" fill="#ffffff" opacity="0.18" />
+<circle cx="56.4" cy="141.0" r="0.53" fill="#ffffff" opacity="0.31" />
+<circle cx="108.5" cy="103.6" r="0.41" fill="#ffcf8a" opacity="0.70" />
+<circle cx="115.3" cy="76.1" r="0.20" fill="#ffffff" opacity="0.16" />
+<circle cx="96.4" cy="167.6" r="0.68" fill="#ffffff" opacity="0.70" />
+<circle cx="81.2" cy="185.0" r="0.66" fill="#ffcf8a" opacity="0.47" />
+<circle cx="29.8" cy="114.3" r="0.67" fill="#ffcf8a" opacity="0.48" />
+<circle cx="132.7" cy="70.3" r="0.21" fill="#9ff8ff" opacity="0.28" />
+<circle cx="188.5" cy="107.5" r="0.16" fill="#ffcf8a" opacity="0.67" />
+<circle cx="143.1" cy="93.0" r="0.55" fill="#ffffff" opacity="0.34" />
+<circle cx="66.4" cy="171.2" r="0.15" fill="#9ff8ff" opacity="0.61" />
+<circle cx="25.2" cy="186.8" r="0.54" fill="#9ff8ff" opacity="0.29" />
+<circle cx="13.6" cy="90.2" r="0.63" fill="#ffcf8a" opacity="0.35" />
+<circle cx="89.9" cy="69.5" r="0.18" fill="#ffcf8a" opacity="0.18" />
+<circle cx="139.0" cy="134.3" r="0.23" fill="#9ff8ff" opacity="0.39" />
+<circle cx="66.3" cy="159.2" r="0.58" fill="#ffffff" opacity="0.64" />
+<circle cx="170.5" cy="133.6" r="0.65" fill="#ffcf8a" opacity="0.55" />
+<circle cx="10.4" cy="151.8" r="0.40" fill="#ffcf8a" opacity="0.50" />
+<circle cx="60.1" cy="28.8" r="0.66" fill="#ffcf8a" opacity="0.24" />
+<circle cx="87.1" cy="70.7" r="0.29" fill="#9ff8ff" opacity="0.37" />
+<circle cx="50.1" cy="107.0" r="0.52" fill="#ffcf8a" opacity="0.24" />
+<circle cx="33.9" cy="57.4" r="0.65" fill="#ffffff" opacity="0.45" />
+<circle cx="95.1" cy="79.9" r="0.57" fill="#ffffff" opacity="0.23" />
+<circle cx="40.4" cy="36.3" r="0.34" fill="#ffcf8a" opacity="0.33" />
+<circle cx="77.3" cy="165.7" r="0.26" fill="#ffcf8a" opacity="0.56" />
+<circle cx="86.7" cy="94.5" r="0.44" fill="#ffffff" opacity="0.30" />
+<circle cx="157.9" cy="109.7" r="0.47" fill="#9ff8ff" opacity="0.22" />
+<circle cx="105.7" cy="133.3" r="0.62" fill="#ffcf8a" opacity="0.20" />
+<circle cx="188.3" cy="89.2" r="0.51" fill="#ffffff" opacity="0.67" />
+<circle cx="178.2" cy="177.1" r="0.16" fill="#ffcf8a" opacity="0.38" />
+<circle cx="160.4" cy="164.8" r="0.68" fill="#ffffff" opacity="0.15" />
+<circle cx="82.2" cy="186.8" r="0.60" fill="#ffffff" opacity="0.68" />
+<circle cx="52.2" cy="39.6" r="0.23" fill="#ffcf8a" opacity="0.67" />
+<circle cx="151.6" cy="136.5" r="0.57" fill="#ffffff" opacity="0.20" />
+<circle cx="163.1" cy="20.2" r="0.22" fill="#ffcf8a" opacity="0.51" />
+<circle cx="63.8" cy="43.0" r="0.29" fill="#ffffff" opacity="0.53" />
+<circle cx="23.5" cy="32.7" r="0.44" fill="#ffcf8a" opacity="0.36" />
+<circle cx="47.0" cy="128.2" r="0.16" fill="#9ff8ff" opacity="0.70" />
+<circle cx="58.5" cy="76.9" r="0.61" fill="#ffcf8a" opacity="0.41" />
+<circle cx="49.3" cy="64.5" r="0.68" fill="#9ff8ff" opacity="0.18" />
+    <line x1="0" y1="172" x2="60" y2="172" stroke="#FF3B30" stroke-width="5" opacity="0.35" filter="url(#blur3)" />
+<line x1="0" y1="172" x2="60" y2="172" stroke="#FF3B30" stroke-width="1.8" opacity="0.9" filter="url(#blur1)" />
+<line x1="0" y1="172" x2="60" y2="172" stroke="#ffffff" stroke-width="0.45" />
+<line x1="60" y1="172" x2="60" y2="128" stroke="#00F0FF" stroke-width="5" opacity="0.35" filter="url(#blur3)" />
+<line x1="60" y1="172" x2="60" y2="128" stroke="#00F0FF" stroke-width="1.8" opacity="0.9" filter="url(#blur1)" />
+<line x1="60" y1="172" x2="60" y2="128" stroke="#ffffff" stroke-width="0.45" />
+<line x1="60" y1="128" x2="134" y2="128" stroke="#00F0FF" stroke-width="5" opacity="0.35" filter="url(#blur3)" />
+<line x1="60" y1="128" x2="134" y2="128" stroke="#00F0FF" stroke-width="1.8" opacity="0.9" filter="url(#blur1)" />
+<line x1="60" y1="128" x2="134" y2="128" stroke="#ffffff" stroke-width="0.45" />
+<line x1="134" y1="128" x2="134" y2="158" stroke="#A855F7" stroke-width="5" opacity="0.35" filter="url(#blur3)" />
+<line x1="134" y1="128" x2="134" y2="158" stroke="#A855F7" stroke-width="1.8" opacity="0.9" filter="url(#blur1)" />
+<line x1="134" y1="128" x2="134" y2="158" stroke="#ffffff" stroke-width="0.45" />
+<line x1="134" y1="158" x2="210" y2="158" stroke="#00F0FF" stroke-width="5" opacity="0.35" filter="url(#blur3)" />
+<line x1="134" y1="158" x2="210" y2="158" stroke="#00F0FF" stroke-width="1.8" opacity="0.9" filter="url(#blur1)" />
+<line x1="134" y1="158" x2="210" y2="158" stroke="#ffffff" stroke-width="0.45" />
+    <g transform="translate(60 172) rotate(45)"><rect x="-4.2" y="-4.2" width="8.4" height="8.4" rx="0.6" fill="rgba(210,245,255,0.16)" stroke="#e6fbff" stroke-width="0.45" /><rect x="-2.6" y="-2.6" width="5.2" height="5.2" fill="none" stroke="#00F0FF" stroke-width="0.3" opacity="0.8" /></g><circle cx="60" cy="172" r="7" fill="url(#hit)" />
+<g transform="translate(60 128) rotate(45)"><rect x="-4.2" y="-4.2" width="8.4" height="8.4" rx="0.6" fill="rgba(210,245,255,0.16)" stroke="#e6fbff" stroke-width="0.45" /><rect x="-2.6" y="-2.6" width="5.2" height="5.2" fill="none" stroke="#00F0FF" stroke-width="0.3" opacity="0.8" /></g><circle cx="60" cy="128" r="7" fill="url(#hit)" />
+<g transform="translate(134 128) rotate(45)"><rect x="-4.2" y="-4.2" width="8.4" height="8.4" rx="0.6" fill="rgba(210,245,255,0.16)" stroke="#e6fbff" stroke-width="0.45" /><rect x="-2.6" y="-2.6" width="5.2" height="5.2" fill="none" stroke="#00F0FF" stroke-width="0.3" opacity="0.8" /></g><circle cx="134" cy="128" r="7" fill="url(#hit)" />
+<g transform="translate(134 158) rotate(45)"><rect x="-4.2" y="-4.2" width="8.4" height="8.4" rx="0.6" fill="rgba(210,245,255,0.16)" stroke="#e6fbff" stroke-width="0.45" /><rect x="-2.6" y="-2.6" width="5.2" height="5.2" fill="none" stroke="#00F0FF" stroke-width="0.3" opacity="0.8" /></g><circle cx="134" cy="158" r="7" fill="url(#hit)" />
+  </svg>
+  <div class="bars"></div>
+  <div class="content">
+    <div class="kicker">PROJECT DOSSIER · 2026</div>
+    <h1 class="en-title">Photon Decay Labyrinth</h1>
+    <div class="en">متاهة الذاكرة الضوئية</div>
+    <p class="lead" style="margin-top:6mm; max-width:160mm">
+      A cinematic 3D light-puzzle game that runs in the browser. You dive inside a soiled solar cell, steer a photon beam through prisms, and switch wavelengths to clear dust, salt and soot until the solar plant is back at full efficiency.
+    </p>
+    <div class="meta">
+      <div><b>Play now</b><span class="ltr">deema-majid.github.io/photon-decay-labyrinth</span></div>
+      <div><b>Source</b><span class="ltr">github.com/Deema-Majid/photon-decay-labyrinth</span></div>
+      <div><b>Created by</b>Deema bint Majid Al-Maarik</div>
+    </div>
+  </div>
+</section>
+
+<!-- 2. OVERVIEW -->
+<section class="page">
+  <div class="kicker">01 · OVERVIEW</div>
+  <h2>At a glance</h2>
+  <div class="rule"></div>
+  <p class="lead">
+    Photon Decay Labyrinth turns a real problem at solar power plants, panels soiled by dust, salt and soot, into an engaging physics puzzle. Every level is the inside of a silicon cell, and the player's job is to give light its path back.
+  </p>
+  <div class="grid4" style="margin:6mm 0 8mm">
+    <div class="glass stat"><div class="n">3</div><div class="l">cells, each a different environment</div></div>
+    <div class="glass stat"><div class="n">10</div><div class="l">interactive cell elements</div></div>
+    <div class="glass stat"><div class="n">2</div><div class="l">complete languages</div></div>
+    <div class="glass stat"><div class="n">7</div><div class="l">achievements</div></div>
+  </div>
+  <div class="grid2">
+    <div class="glass">
+      <h3>What makes it different</h3>
+      <ul class="clean">
+        <li><b>Cinematic direction:</b> designed camera shots, volumetric sun rays, filmic color grading and cinema bars.</li>
+        <li><b>Playable light physics:</b> reflection, wavelength conversion and a different effect for every band.</li>
+        <li><b>A genuinely smart assistant:</b> Lumen solves the maze from your current position and reveals only the next step.</li>
+        <li><b>A practical tool:</b> a panel-care calculator turns the lesson into a real cleaning decision with energy and CO₂ estimates.</li>
+      </ul>
+    </div>
+    <div class="glass">
+      <h3>Contents</h3>
+      <ul class="clean toc">
+        <li><span>The idea and the problem</span><span>03</span></li>
+        <li><span>The cinematic experience</span><span>04</span></li>
+        <li><span>Gameplay</span><span>05</span></li>
+        <li><span>The three cells</span><span>06</span></li>
+        <li><span>Lumen and the panel calculator</span><span>07</span></li>
+        <li><span>Player features</span><span>08</span></li>
+        <li><span>Visual direction</span><span>09</span></li>
+        <li><span>Architecture</span><span>10</span></li>
+        <li><span>Quality and performance</span><span>11</span></li>
+        <li><span>What's next</span><span>12</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="folio"><span>PHOTON DECAY LABYRINTH</span><span>02</span></div>
+</section>
+
+<!-- 3. IDEA -->
+<section class="page">
+  <div class="kicker">02 · THE IDEA</div>
+  <h2>The idea and the problem</h2>
+  <div class="rule"></div>
+  <div class="grid3" style="margin-bottom:7mm">
+    <div class="glass">
+      <span class="tag">PROBLEM</span>
+      <h3 style="margin-top:2mm">Panels lose their light</h3>
+      <p>In desert, coastal and industrial settings, dust, salt and soot build up on solar panels, block part of the sunlight and cut energy output. Engineers know the problem well, but it is invisible to most people.</p>
+    </div>
+    <div class="glass">
+      <span class="tag">IDEA</span>
+      <h3 style="margin-top:2mm">Step inside the cell</h3>
+      <p>Instead of a lecture, the player dives into a silicon cell and meets the contaminants as tangible things: dust clouds, salt crystals and carbon spheres. The mission is to get photons to the receivers.</p>
+    </div>
+    <div class="glass">
+      <span class="tag">LEARNING</span>
+      <h3 style="margin-top:2mm">Science you discover by playing</h3>
+      <p>Each wavelength has a job: infrared vaporizes dust, ultraviolet shatters salt, and visible light charges the receivers. Players learn that light carries different energies without reading a single lesson.</p>
+    </div>
+  </div>
+  <div class="grid2" style="align-items:center">
+    <div class="shot" style="height:70mm"><img src="img/intro-crane.jpg" alt="" /></div>
+    <div>
+      <div class="quote">
+        The goal is for players to walk away understanding why panels get cleaned, why the light that reaches them matters, and how those details become the energy that lights a city.
+      </div>
+      <p style="margin-top:5mm">
+        The finale ties the experience to Saudi Vision 2030: a solar plant at full capacity powering a city of the future. The figures shown in that scene are illustrative storytelling; the panel calculator is where the real, sourced estimates live.
+      </p>
+    </div>
+  </div>
+  <div class="folio"><span>PHOTON DECAY LABYRINTH</span><span>03</span></div>
+</section>
+
+<!-- 4. CINEMATIC EXPERIENCE -->
+<section class="page">
+  <div class="kicker">03 · THE EXPERIENCE</div>
+  <h2>The cinematic experience</h2>
+  <div class="rule"></div>
+  <div class="flow" style="margin-bottom:7mm">
+    <div class="glass step"><div class="i">01</div><div class="t">Opening</div><div class="d">Four camera shots over a dusty solar farm</div></div>
+    <div class="glass step"><div class="i">02</div><div class="t">The dive</div><div class="d">The camera plunges through the panel into the cell</div></div>
+    <div class="glass step"><div class="i">03</div><div class="t">The cell</div><div class="d">A chapter card and a crane shot onto the board</div></div>
+    <div class="glass step"><div class="i">04</div><div class="t">Restoration</div><div class="d">Scene and sound shift from dust to light</div></div>
+    <div class="glass step"><div class="i">05</div><div class="t">Finale</div><div class="d">The city rises with an impact card</div></div>
+  </div>
+  <div class="grid2">
+    <div>
+      <div class="shot" style="height:62mm"><img src="img/intro-sun.jpg" alt="" /></div>
+      <div class="cap">Low dolly toward the desert sun, with volumetric rays and an anamorphic lens streak.</div>
+    </div>
+    <div>
+      <div class="shot" style="height:62mm"><img src="img/finale.jpg" alt="" /></div>
+      <div class="cap">The finale: the lit city and the "Impact Telemetry · Vision 2030" card.</div>
+    </div>
+  </div>
+  <div class="glass" style="margin-top:7mm">
+    <h3>A full camera director</h3>
+    <ul class="clean">
+      <li><b>Opening:</b> a low dolly, a macro shot of salt crystals with shallow depth of field, a rising crane, then a slow orbit that follows the mouse.</li>
+      <li><b>During play:</b> a low 38° lens, a subtle handheld drift, and a push-in with a focus pull toward every key event.</li>
+      <li><b>On phones:</b> in portrait the camera turns to look along the board with a wider lens so it fills the tall screen.</li>
+    </ul>
+  </div>
+  <div class="folio"><span>PHOTON DECAY LABYRINTH</span><span>04</span></div>
+</section>
+
+<!-- 5. MECHANICS -->
+<section class="page dense">
+  <div class="kicker">04 · GAMEPLAY</div>
+  <h2>Gameplay</h2>
+  <div class="rule"></div>
+  <p class="lead">Goal: get the beam to every receiver in the cell as visible light. Click or tap a prism to turn it 90°, and switch wavelength from the top bar or with keys <span class="ltr">1 · 2 · 3</span>.</p>
+  <div class="grid3" style="margin:6mm 0 7mm">
+    <div class="wave" style="border-color:rgba(255,59,48,.45); background:rgba(255,59,48,.07)">
+      <div class="h"><b style="color:#fff"><span class="dot" style="background:var(--ir); box-shadow:0 0 8px var(--ir)"></span>Infrared</b><span class="nm ltr">IR · 850nm</span></div>
+      <p style="margin-top:2mm">Vaporizes soft dust clouds with thermal energy.</p>
+    </div>
+    <div class="wave" style="border-color:rgba(0,240,255,.45); background:rgba(0,240,255,.07)">
+      <div class="h"><b style="color:#fff"><span class="dot" style="background:var(--cyan); box-shadow:0 0 8px var(--cyan)"></span>Visible</b><span class="nm ltr">VIS · 500nm</span></div>
+      <p style="margin-top:2mm">The only band that charges and locks receivers.</p>
+    </div>
+    <div class="wave" style="border-color:rgba(168,85,247,.5); background:rgba(168,85,247,.08)">
+      <div class="h"><b style="color:#fff"><span class="dot" style="background:var(--uv); box-shadow:0 0 8px var(--uv)"></span>Ultraviolet</b><span class="nm ltr">UV · 365nm</span></div>
+      <p style="margin-top:2mm">Shatters salt crystals; its photons carry more energy than their bonds.</p>
+    </div>
+  </div>
+  <table>
+    <tr><th>Element</th><th>What it does</th></tr>
+    <tr><td>Emitter</td><td>Source of the beam; its color follows the selected band.</td></tr>
+    <tr><td>Prism</td><td>Reflects the beam at a right angle; the player rotates it.</td></tr>
+    <tr><td>Dust cloud</td><td>Blocks the beam; infrared vaporizes it.</td></tr>
+    <tr><td>Salt crystal</td><td>Blocks the beam; ultraviolet shatters it into shards.</td></tr>
+    <tr><td>Receiver</td><td>Locks after about 1.5 seconds of visible light.</td></tr>
+    <tr><td>Energy ring</td><td>Converts a passing beam to its own wavelength.</td></tr>
+    <tr><td>Magnetic vortex</td><td>Bends the beam 90° clockwise.</td></tr>
+    <tr><td>Spectral gate</td><td>Lets only its own wavelength through.</td></tr>
+    <tr><td>Carbon sphere</td><td>Drifts back and forth, blocking the path at times.</td></tr>
+    <tr><td>Wall</td><td>Stops the beam.</td></tr>
+  </table>
+  <div class="glass" style="margin-top:5mm; display:flex; gap:5mm; align-items:center">
+    <span class="tag" style="border-color:rgba(252,211,77,.5); color:var(--amber)">STARS</span>
+    <p style="margin:0">Up to 3 stars per cell: one for clearing it, one for time, one for rotations. The clock starts on the first move, and the targets are always visible in the status card.</p>
+  </div>
+  <div class="folio"><span>PHOTON DECAY LABYRINTH</span><span>05</span></div>
+</section>
+
+<!-- 6. LEVELS -->
+<section class="page">
+  <div class="kicker">05 · THE CELLS</div>
+  <h2>The three cells</h2>
+  <div class="rule"></div>
+  <div style="display:grid; grid-template-columns: 78mm 1fr; gap:6mm; margin-bottom:6mm; align-items:center">
+    <div class="shot" style="height:58mm"><img src="img/level1-ir.jpg" alt="" /></div>
+    <div>
+      <span class="tag">CELL 01 · 9×7</span>
+      <h3 style="margin-top:2mm">The Desert Crust · Rub al Khali</h3>
+      <p>Golden desert dust covers the cell. Players learn the core loop here: infrared to vaporize the clouds, then visible light to lock the receiver.</p>
+    </div>
+  </div>
+  <div style="display:grid; grid-template-columns: 78mm 1fr; gap:6mm; margin-bottom:6mm; align-items:center">
+    <div class="shot" style="height:58mm"><img src="img/level2.jpg" alt="" /></div>
+    <div>
+      <span class="tag">CELL 02 · 10×8</span>
+      <h3 style="margin-top:2mm">The Saline Barrier · The Coast</h3>
+      <p>A blue crystalline cavern formed by sea spray. Ultraviolet shatters the crystals, energy rings change the wavelength mid-flight, and there are two receivers instead of one.</p>
+    </div>
+  </div>
+  <div style="display:grid; grid-template-columns: 78mm 1fr; gap:6mm; align-items:center">
+    <div class="shot" style="height:58mm"><img src="img/level3-hint.jpg" alt="" /></div>
+    <div>
+      <span class="tag">CELL 03 · 11×9</span>
+      <h3 style="margin-top:2mm">The Urban Smog · The Industrial City</h3>
+      <p>A dark neon grid choked with carbon soot. Magnetic vortices bend the beam, gates pass only one band, and moving carbon spheres demand timing.</p>
+      <p class="cap">Shown: a prism glowing with a golden beacon after asking Lumen for a hint.</p>
+    </div>
+  </div>
+  <div class="folio"><span>PHOTON DECAY LABYRINTH</span><span>06</span></div>
+</section>
+
+<!-- 7. LUMEN + CALCULATOR -->
+<section class="page dense">
+  <div class="kicker">06 · LUMEN A.I. & PANEL CARE</div>
+  <h2>From playing to acting</h2>
+  <div class="rule"></div>
+  <div class="grid2">
+    <div class="glass">
+      <span class="tag">CONTEXT TIPS</span>
+      <h3 style="margin-top:2mm">Lumen reads the board</h3>
+      <ul class="clean">
+        <li><b>Wrong band:</b> if the beam stays on dust, a crystal or a receiver with the wrong light, Lumen explains why and the right button pulses.</li>
+        <li><b>Lost beam:</b> if the beam leaves the board and the player is idle for 7 seconds, Lumen suggests rotating a prism.</li>
+        <li><b>First encounters:</b> rings, vortices and carbon spheres are explained the first time they appear.</li>
+      </ul>
+    </div>
+    <div class="glass">
+      <span class="tag">SOLVER HINT</span>
+      <h3 style="margin-top:2mm">The hint button</h3>
+      <p>A breadth-first search over every prism and wavelength combination finds the shortest win from the current board, then reveals a single step: a glowing prism, a pulsing band button, or "hold the beam steady". A hint caps the run at two stars. Tested by solving all three cells with hints alone.</p>
+    </div>
+  </div>
+  <div class="glass" style="margin-top:6mm">
+    <span class="tag">PANEL CARE CALCULATOR</span>
+    <h3 style="margin-top:2mm">Apply it to a real panel</h3>
+    <p>From the main menu or the finale, players pick an environment that matches a game cell (desert dust, coastal salt or urban soot), a system size and the days since the last cleaning. The calculator estimates the current loss, the energy and grid CO₂ lost, what cleaning today saves over 30 days, and when to clean next, with safe, low-water cleaning tips.</p>
+    <div class="grid4" style="margin-top:3mm">
+      <div class="stat"><div class="n">4.2%</div><div class="l">loss after 14 days</div></div>
+      <div class="stat"><div class="n">8.1</div><div class="l">kWh lost so far</div></div>
+      <div class="stat"><div class="n">32.6</div><div class="l">kWh saved by cleaning today</div></div>
+      <div class="stat"><div class="n">≈22.5</div><div class="l">kg CO₂ avoided</div></div>
+    </div>
+    <p class="cap" style="margin:2mm 0 0">Example: a 5 kWp home system in desert dust. Sources: Global Solar Atlas (5.17 kWh/kWp/day), Ember 2024 Saudi grid (0.692 kg CO₂/kWh), K.A.CARE Rumah and Rabigh soiling measurements. Results are estimates.</p>
+  </div>
+  <div class="grid2" style="margin-top:6mm">
+    <div class="shot" style="height:44mm"><img src="../devpost/calculator-results.jpg" alt="" /></div>
+    <div class="shot" style="height:44mm"><img src="img/english-1080p.jpg" alt="" /></div>
+  </div>
+  <div class="folio"><span>PHOTON DECAY LABYRINTH</span><span>07</span></div>
+</section>
+
+<!-- 8. PLAYER FEATURES -->
+<section class="page">
+  <div class="kicker">07 · PLAYER FEATURES</div>
+  <h2>Player features</h2>
+  <div class="rule"></div>
+  <div class="grid3" style="margin-bottom:6mm">
+    <div class="glass"><h3>Player profiles</h3><p>A name and emblem for each player, with progress, stars and records saved in the browser, and switching between profiles.</p></div>
+    <div class="glass"><h3>Two full languages</h3><p>Arabic and English across every string, with the page direction switching automatically. Even Lumen's lines translate instantly.</p></div>
+    <div class="glass"><h3>Seven achievements</h3><p>First Light, Flawless, Photon Engineer, Speed of Light, Full Spectrum, Restorer and Photographer.</p></div>
+    <div class="glass"><h3>Photo mode</h3><p>Free camera, optional cinema bars, and PNG capture at screen resolution.</p></div>
+    <div class="glass"><h3>Generated score</h3><p>A soundtrack for each cell with no audio files: muffled by the dust and opening up as you clean.</p></div>
+    <div class="glass"><h3>Mobile</h3><p>A compact interface, a portrait camera, full touch input and the Performance preset by default.</p></div>
+  </div>
+  <div style="display:grid; grid-template-columns: 1fr 44mm; gap:5mm">
+    <div>
+      <div class="shot" style="height:88mm"><img src="img/photo-mode.jpg" alt="" /></div>
+      <div class="cap">Photo mode: the interface hidden and a free camera around the third cell.</div>
+    </div>
+    <div>
+      <div class="shot" style="height:88mm"><img src="img/mobile.jpg" alt="" /></div>
+      <div class="cap">Playing on a phone.</div>
+    </div>
+  </div>
+  <div class="folio"><span>PHOTON DECAY LABYRINTH</span><span>08</span></div>
+</section>
+
+<!-- 9. VISUALS -->
+<section class="page">
+  <div class="kicker">08 · VISUAL DIRECTION</div>
+  <h2>Visual direction</h2>
+  <div class="rule"></div>
+  <div class="grid2">
+    <div class="glass">
+      <h3>Materials and forms</h3>
+      <ul class="clean">
+        <li><b>Procedural textures</b> generated in code: solar cells, city windows, silicon hexagons.</li>
+        <li><b>Refractive glass</b> for prisms and crystals, sharing a single refraction buffer.</li>
+        <li><b>A reflective floor</b> that mirrors the neon and adds depth.</li>
+        <li><b>A volumetric beam</b> with a white-hot core, two aura layers and photon packets that carry light.</li>
+      </ul>
+    </div>
+    <div class="glass">
+      <h3>Lighting and post-processing</h3>
+      <ul class="clean">
+        <li><b>Volumetric light shafts</b> and real god rays in the opening.</li>
+        <li><b>ACES filmic tone mapping</b> with a grade of teal shadows and warm highlights.</li>
+        <li><b>Selective bloom</b>, depth of field that follows the camera, and film grain.</li>
+        <li><b>Anamorphic lens streaks</b> at the sun and at beam impact points.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="grid2" style="margin-top:6mm">
+    <div><div class="shot" style="height:60mm"><img src="img/level1.jpg" alt="" /></div><div class="cap">The desert cell: dust clouds and metal-framed prisms.</div></div>
+    <div><div class="shot" style="height:60mm"><img src="img/loading.jpg" alt="" /></div><div class="cap">The loading screen while shaders compile.</div></div>
+  </div>
+  <div class="glass" style="margin-top:6mm">
+    <h3>The world recovers in front of you</h3>
+    <p style="margin:0">Fog color and density, the floor, the energy conduits, the music and the height of the city in the background are all tied to how much of the cell the player has cleaned, so the effect of their work shows everywhere.</p>
+  </div>
+  <div class="folio"><span>PHOTON DECAY LABYRINTH</span><span>09</span></div>
+</section>
+
+<!-- 10. ARCHITECTURE -->
+<section class="page">
+  <div class="kicker">09 · ARCHITECTURE</div>
+  <h2>Architecture</h2>
+  <div class="rule"></div>
+  <div style="margin-bottom:6mm">
+    <span class="tag">REACT 19</span><span class="tag">TYPESCRIPT</span><span class="tag">THREE.JS r187</span><span class="tag">REACT THREE FIBER 9</span><span class="tag">DREI 10</span><span class="tag">POSTPROCESSING</span><span class="tag">ZUSTAND 5</span><span class="tag">TAILWIND 4</span><span class="tag">VITE 8</span><span class="tag">WEB AUDIO</span>
+  </div>
+  <div class="arch">
+    <div class="box wide"><div class="t">UI LAYER</div><div class="d">Menus, top bar, Lumen, profiles, settings, achievements, photo mode, panel calculator (React + Tailwind)</div></div>
+    <div class="box"><div class="t">GAME STORE</div><div class="d">Play state, stars, hints, pause (Zustand)</div></div>
+    <div class="box"><div class="t">PROFILE STORE</div><div class="d">Profiles, progress, language and settings, persisted and validated</div></div>
+    <div class="box"><div class="t">I18N</div><div class="d">Arabic and English dictionary for every string</div></div>
+    <div class="box"><div class="t">BEAM ENGINE</div><div class="d">Grid beam tracing: reflection, conversion, blocking</div></div>
+    <div class="box"><div class="t">SOLVER</div><div class="d">Breadth-first search for the shortest solution and the next step</div></div>
+    <div class="box"><div class="t">SOILING MODEL</div><div class="d">Tested estimator for loss, energy, CO₂ and cleaning timing</div></div>
+    <div class="box wide"><div class="t">3D SCENE</div><div class="d">Camera director, post-processing, materials, particles, shadows, city (Three.js via React Three Fiber)</div></div>
+  </div>
+  <div class="grid3" style="margin-top:7mm">
+    <div class="glass stat"><div class="n">60</div><div class="l">TypeScript source files</div></div>
+    <div class="glass stat"><div class="n">~7.5K</div><div class="l">lines of TypeScript</div></div>
+    <div class="glass stat"><div class="n">0</div><div class="l">external image or audio files in the game</div></div>
+  </div>
+  <div class="glass" style="margin-top:6mm">
+    <h3>Deployment</h3>
+    <p style="margin:0">Every push to the main branch is built and deployed to GitHub Pages automatically with GitHub Actions. The game runs entirely in the browser with no server, and player data never leaves the device.</p>
+  </div>
+  <div class="folio"><span>PHOTON DECAY LABYRINTH</span><span>10</span></div>
+</section>
+
+<!-- 11. QUALITY -->
+<section class="page dense">
+  <div class="kicker">10 · QUALITY</div>
+  <h2>Quality, testing and performance</h2>
+  <div class="rule"></div>
+  <div class="grid2">
+    <div class="glass">
+      <h3>What was actually tested</h3>
+      <ul class="clean">
+        <li>An automated checker proves all three cells are solvable.</li>
+        <li>All three cells solved using hints alone, with every suggestion correct.</li>
+        <li>A full player play-through: odd names, pausing, retrying, switching language, deleting profiles.</li>
+        <li>Phone emulation with touch, and 1080p on an integrated GPU.</li>
+        <li>11 passing checks for the panel calculator.</li>
+        <li>A final code review: 8 findings, all fixed and verified.</li>
+      </ul>
+    </div>
+    <div class="glass">
+      <h3>Fixing the black-screen flicker</h3>
+      <p>Two causes were found by measurement and fixed: a GPU memory leak in the shadow component, and every shader recompiling whenever an obstacle was destroyed.</p>
+      <table>
+        <tr><th>Measurement</th><th>Before</th><th>After</th></tr>
+        <tr><td>Textures after 30 rotations</td><td><span class="num">63 → 111</span></td><td><span class="num">57 → 57</span></td></tr>
+        <tr><td>Worst frame when vaporizing</td><td><span class="num">19.7 s</span></td><td><span class="num">65 ms</span></td></tr>
+        <tr><td>Moving between cells</td><td>full recompile</td><td><span class="num">46 ms</span></td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="glass" style="margin-top:6mm">
+    <h3>Scene render time on Intel Iris Xe at 1080p</h3>
+    <table>
+      <tr><th>Preset</th><th>Render size</th><th>Point lights</th><th>Scene render time</th></tr>
+      <tr><td>Cinematic</td><td><span class="num">2400×1350</span></td><td><span class="num">11</span></td><td><span class="num">≈ 14.5 ms</span></td></tr>
+      <tr><td>Performance</td><td><span class="num">1920×1080</span></td><td><span class="num">1</span></td><td><span class="num">≈ 10 ms</span></td></tr>
+    </table>
+    <p class="cap" style="margin:2mm 0 0">Raw scene render time without post-processing, measured in a preview window on the same machine. The game drops to Performance automatically if the frame rate falls.</p>
+  </div>
+  <div class="glass" style="margin-top:6mm">
+    <h3>Final code review: 8 findings fixed</h3>
+    <div class="grid2" style="gap:2mm 6mm">
+      <ul class="clean">
+        <li>Enter on a focused button no longer starts the game by mistake.</li>
+        <li>Corrupted save data is repaired instead of crashing the menu.</li>
+        <li>A hint that suggests no move no longer costs a star.</li>
+        <li>Wavelength tips account for rings that recolor the beam.</li>
+      </ul>
+      <ul class="clean">
+        <li>The refraction buffer is lighter in Performance mode.</li>
+        <li>The city is no longer recomputed every frame for nothing.</li>
+        <li>Audio no longer schedules redundant changes.</li>
+        <li>A clear screen appears if the browser blocks 3D graphics.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="folio"><span>PHOTON DECAY LABYRINTH</span><span>11</span></div>
+</section>
+
+<!-- 12. NEXT -->
+<section class="page">
+  <div class="kicker">11 · WHAT'S NEXT</div>
+  <h2>What's next</h2>
+  <div class="rule"></div>
+  <div class="grid2" style="margin-bottom:8mm">
+    <div class="glass"><span class="tag">CALIBRATION</span><h3 style="margin-top:2mm">Use real inverter data</h3><p>Let users enter their inverter's daily output to calibrate the soiling rate for their own roof.</p></div>
+    <div class="glass"><span class="tag">EDUCATION</span><h3 style="margin-top:2mm">Classroom mode</h3><p>Pair each cell with a short lesson on solar energy and the wavelengths of light.</p></div>
+    <div class="glass"><span class="tag">CONTENT</span><h3 style="margin-top:2mm">More cells and a level editor</h3><p>New environments, and an editor that lets players share their own cells by link.</p></div>
+    <div class="glass"><span class="tag">DAILY</span><h3 style="margin-top:2mm">Daily challenge</h3><p>A generated daily cell, verified as solvable by the same solver that powers the hints.</p></div>
+  </div>
+  <div class="glass" style="text-align:center; padding:9mm 6mm">
+    <div class="kicker">PLAY · SOURCE</div>
+    <h2 style="font-size:20pt; margin-top:3mm">Play it now in your browser</h2>
+    <p class="ltr" style="font-family:'Orbitron',sans-serif; font-size:10pt; color:var(--cyan-soft); margin-top:4mm">deema-majid.github.io/photon-decay-labyrinth</p>
+    <p class="ltr" style="font-family:'Orbitron',sans-serif; font-size:9pt; color:var(--faint)">github.com/Deema-Majid/photon-decay-labyrinth</p>
+  </div>
+  <div class="folio"><span>PHOTON DECAY LABYRINTH</span><span>12</span></div>
+</section>
+
+</body>
+</html>

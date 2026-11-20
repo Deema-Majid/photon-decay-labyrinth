@@ -13,7 +13,7 @@ A cinematic 3D light puzzle that teaches why dirty solar panels waste energy, th
 ## Links
 - **Play in the browser:** https://deema-majid.github.io/photon-decay-labyrinth/
 - **Source code (public):** https://github.com/Deema-Majid/photon-decay-labyrinth
-- **Project dossier (PDF):** in the repository at `docs/Photon-Decay-Labyrinth.pdf`
+- **Project dossier (PDF, English):** https://github.com/Deema-Majid/photon-decay-labyrinth/blob/main/docs/Photon-Decay-Labyrinth-EN.pdf
 
 ---
 
@@ -100,7 +100,7 @@ I built this project with an AI coding assistant ([AI tool]) that wrote most of 
 None. Development started on November 16, 2026, inside the event period. Open-source libraries are credited above; fonts are Tajawal and Orbitron from Google Fonts.
 
 ## Team
-- [اكتبي اسمك الكامل هنا]
+- Deema bint Majid Al-Maarik
 
 ---
 
