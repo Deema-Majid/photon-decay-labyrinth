@@ -1,0 +1,19 @@
+Photon Decay Labyrinth (متاهة الذاكرة الضوئية)
+Copyright (c) 2026 Deema bint Majid Al-Maarik (ديما بنت ماجد المعارك). All rights reserved.
+
+This repository is public so that the game can be played, reviewed and judged.
+Viewing the source code and playing the game in a browser are permitted.
+
+Without prior written permission from the copyright holder, no one may copy,
+modify, publish, distribute, sublicense, sell or create derivative works from
+this game, its source code, its levels, its visual design, its text or its
+name, in whole or in part.
+
+Third-party open-source libraries and fonts used by this project (such as
+three.js, React, React Three Fiber, drei, postprocessing, Zustand, Tailwind CSS,
+lucide-react, and the Orbitron and Tajawal fonts) remain under their own
+licenses and are not covered by this notice.
+
+جميع الحقوق محفوظة لديما بنت ماجد المعارك © 2026. يُسمح بتشغيل اللعبة والاطلاع على
+الكود، ولا يجوز نسخ اللعبة أو تعديلها أو نشرها أو بيعها أو الاقتباس منها كليًا أو جزئيًا
+بدون إذن كتابي مسبق.

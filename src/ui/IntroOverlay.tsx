@@ -194,6 +194,13 @@ export function IntroOverlay() {
         </div>
       </div>
 
+      <p
+        className="pointer-events-none absolute inset-x-0 bottom-[max(1.6vh,0.4rem)] px-4 text-center text-[10px] text-cyan-100/60 sm:text-[11px]"
+        style={dim}
+      >
+        {t('app.copyright')}
+      </p>
+
       {modal === 'profiles' || modal === 'create' ? (
         <ProfileModal
           initial={modal === 'create' ? 'create' : 'list'}
